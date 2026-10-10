@@ -19,6 +19,15 @@ OFT_URL = f"https://github.com/itsallcode/openfasttrace/releases/download/{OFT_V
 TAG_ALIASES = {".tsx": ".ts", ".jsx": ".js"}
 
 
+def import_diagnostics(log):
+    """Retain JVM configuration notices in logs without treating them as OFT warnings."""
+    output = log.read_text(errors="replace")
+    options = os.environ.get("JAVA_TOOL_OPTIONS")
+    if options is not None:
+        output = output.removeprefix(f"Picked up JAVA_TOOL_OPTIONS: {options}\n")
+    return output.strip()
+
+
 # [impl->req~ib-python-annotations~1]
 def annotation_diagnostics(snap, inputs, items):
     """Detect ignored standalone short tags, not program-language semantics."""
@@ -232,7 +241,7 @@ def export_items(snap, inputs, jar, java, out, label, exclude=(), *, check_autho
     if convert["status"] != "passed":
         raise CheckError(f"{label}: OFT import failed; see {convert['log']}")
     # OFT may warn and skip malformed items while returning 0. Treat import diagnostics as errors.
-    if (out / convert["log"]).read_text(errors="replace").strip():
+    if import_diagnostics(out / convert["log"]):
         raise CheckError(f"{label}: OFT import emitted diagnostics; see {convert['log']}")
     aliases = [
         e["path"]
@@ -259,7 +268,7 @@ def export_items(snap, inputs, jar, java, out, label, exclude=(), *, check_autho
                 root,
                 out / f"{label}-tags-import.log",
             )
-            if imported["status"] != "passed" or (out / imported["log"]).read_text().strip():
+            if imported["status"] != "passed" or import_diagnostics(out / imported["log"]):
                 raise CheckError(f"{label}: OFT tag import failed; see {imported['log']}")
             for group in xml_tree(extra):
                 for item in group.findall("specobject"):

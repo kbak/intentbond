@@ -137,7 +137,7 @@ Documentation: [docs/contract.md](contract.md).
 
 Implementation: [intentbond/runner.py](../intentbond/runner.py), [intentbond/oft.py](../intentbond/oft.py).
 
-Existing assertions: [test_missing_implementation_reference](../tests/test_workflow.py); [test_missing_test_reference](../tests/test_workflow.py); [test_stale_revision_reference](../tests/test_workflow.py); [test_removed_needs_cannot_turn_green_by_editing_candidate_policy](../tests/test_workflow.py); [test_inherited_baseline_defect_is_not_silently_absorbed](../tests/test_workflow.py).
+Existing assertions: [test_missing_implementation_reference](../tests/test_workflow.py); [test_missing_test_reference](../tests/test_workflow.py); [test_stale_revision_reference](../tests/test_workflow.py); [test_removed_needs_cannot_turn_green_by_editing_candidate_policy](../tests/test_workflow.py); [test_inherited_baseline_defect_is_not_silently_absorbed](../tests/test_workflow.py); [test_java_configuration_notice_preserves_oft_checks_and_logs](../tests/test_workflow.py); [test_java_notice_does_not_hide_oft_import_warning](../tests/test_workflow.py); [test_unmatched_java_notice_remains_an_import_error](../tests/test_workflow.py).
 
 Evidence limit: The Python comment-token importer isolates fixture text; structural links still do not establish assertion adequacy.
 

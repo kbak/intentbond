@@ -3,6 +3,7 @@
 import contextlib
 import io
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -12,7 +13,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from intentbond.cli import main
-from intentbond.common import CheckError, digest, read_json, write_json
+from intentbond.common import CheckError, digest, read_json, run, write_json
 from intentbond.evidence import statement
 from intentbond.oft import default_jar, validate_jar
 from intentbond.runner import check, verify
@@ -101,6 +102,56 @@ class WorkflowFixture(unittest.TestCase):
 
 
 class WorkflowTests(WorkflowFixture):
+    def test_java_configuration_notice_preserves_oft_checks_and_logs(self):
+        # [utest->req~ib-coverage~1]
+        (self.repo / "session.tsx").write_text("// [impl->req~session-expiration~1]\n")
+        self.configure(lambda s: s["inputs"].append("session.tsx"))
+        self.commit()
+        self.base = self.git("rev-parse", "HEAD").strip()
+        options = "-Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128"
+        with patch.dict(os.environ, {"JAVA_TOOL_OPTIONS": options}):
+            result = self.run_check()
+        self.assertEqual(result["status"], "passed", result)
+        for name in ("base-import.log", "candidate-import.log", "base-tags-import.log"):
+            self.assertEqual(
+                (self.out / name).read_text(), f"Picked up JAVA_TOOL_OPTIONS: {options}\n"
+            )
+
+    def test_java_notice_does_not_hide_oft_import_warning(self):
+        # [utest->req~ib-coverage~1]
+        def warn(*args, **kwargs):
+            result = run(*args, **kwargs)
+            if "convert" in args[0]:
+                with args[2].open("a") as log:
+                    log.write("WARNING: ignored malformed OFT item\n")
+            return result
+
+        with (
+            patch.dict(os.environ, {"JAVA_TOOL_OPTIONS": "-Dintentbond.test=1"}),
+            patch("intentbond.oft.run", side_effect=warn),
+        ):
+            result = self.run_check()
+        self.assert_problem(result, "OFT import emitted diagnostics")
+        self.assertEqual(result["tests"]["status"], "not_run")
+        self.assertIn(
+            "WARNING: ignored malformed OFT item", (self.out / "base-import.log").read_text()
+        )
+
+    def test_unmatched_java_notice_remains_an_import_error(self):
+        # [utest->req~ib-coverage~1]
+        def warn(*args, **kwargs):
+            result = run(*args, **kwargs)
+            if "convert" in args[0]:
+                with args[2].open("a") as log:
+                    log.write("Picked up JAVA_TOOL_OPTIONS: unrelated-options\n")
+            return result
+
+        with (
+            patch.dict(os.environ, {"JAVA_TOOL_OPTIONS": "-Dintentbond.test=1"}),
+            patch("intentbond.oft.run", side_effect=warn),
+        ):
+            self.assert_problem(self.run_check(), "OFT import emitted diagnostics")
+
     def test_unparsed_junit_failure_cannot_pass_check_or_verification(self):
         report = (
             '<testsuites tests="2"><testsuites tests="1"><testsuite tests="1">'

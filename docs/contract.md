@@ -171,6 +171,12 @@ Paths are literal, repository-relative POSIX paths; `.` selects the whole
 snapshot. Path escapes and `.git` paths are rejected. Overlapping input roots
 are imported once.
 
+OFT import diagnostics stop checking, including warnings from a successful
+process. A leading JVM `Picked up JAVA_TOOL_OPTIONS` notice matching the current
+environment is configuration information; it stays in the original import log
+and does not count as an OFT diagnostic. JVM options remain in effect, and any
+additional or unmatched output still stops the import.
+
 JSX/TSX files use OFT 4.9.0's existing JS/TS tag importer through temporary,
 byte-identical aliases; retained exports restore original paths and line numbers.
 Python files use Python's tokenizer to select actual comment tokens before OFT
