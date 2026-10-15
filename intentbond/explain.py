@@ -4,11 +4,11 @@ import tempfile
 from pathlib import Path
 
 from . import boundaries
-from .common import CheckError, canonical, digest, read_json, run, xml_tree
-from .config import load_scope
-from .evidence import check_artifacts, read_statement
+from .common import CheckError, run, xml_tree
+from .evidence import load_bundle
 from .execution import explain_execution, retained_execution_links
-from .oft import OFT_SHA256, OFT_VERSION, validate_jar
+from .inspection import degree_lines, graph_degrees
+from .oft import validate_jar
 
 
 def report_items(path):
@@ -52,6 +52,10 @@ def report_items(path):
                     identifier(n)
                     for n in element.findall("coverage/coveringSpecObjects/coveringSpecObject")
                 ),
+                "covering_statuses": [
+                    {"id": identifier(n), "status": n.findtext("coveringStatus")}
+                    for n in element.findall("coverage/coveringSpecObjects/coveringSpecObject")
+                ],
             }
     return items
 
@@ -97,30 +101,13 @@ def explain_many(identifiers, evidence_path, jar, snapshot="candidate", java="ja
         raise CheckError("Select the base or candidate snapshot")
     evidence_path = evidence_path.resolve()
     directory = evidence_path.parent
-    evidence = read_statement(read_json(evidence_path))
-    if evidence.get("schema_version") != 2:
-        raise CheckError("Unsupported evidence schema")
-    if evidence.get("oft") != {"version": OFT_VERSION, "sha256": OFT_SHA256}:
-        raise CheckError("Evidence requires a different OFT version")
     required = {
         "scope.json",
         f"{snapshot}-items.xml",
         "base-manifest.json",
         "candidate-manifest.json",
     }
-    check_artifacts(evidence, directory, required)
-    scope = load_scope(directory / "scope.json")
-    if (
-        scope != evidence["scope"]["configuration"]
-        or digest(canonical(scope)) != evidence["scope"]["sha256"]
-    ):
-        raise CheckError("Scope differs from recorded policy")
-    for label in ("base", "candidate"):
-        if (
-            digest(canonical(read_json(directory / f"{label}-manifest.json")))
-            != evidence[label]["sha256"]
-        ):
-            raise CheckError(f"{label} manifest does not match evidence identity")
+    evidence, scope = load_bundle(evidence_path, required)
     items, traced = graph_report(directory / f"{snapshot}-items.xml", jar, java)
     for identifier in identifiers:
         if identifier not in items:
@@ -134,6 +121,7 @@ def explain_many(identifiers, evidence_path, jar, snapshot="candidate", java="ja
         retained_execution_links(evidence, directory, scope) if snapshot == "candidate" else None
     )
     artifacts = []
+    degrees = graph_degrees(items)
     related = set()
     for identifier in identifiers:
         item = items[identifier]
@@ -147,6 +135,7 @@ def explain_many(identifiers, evidence_path, jar, snapshot="candidate", java="ja
                 "linked_test_execution": execution_status,
                 "linked_tests": linked_tests,
                 "execution_link_diagnostics": execution_diagnostics,
+                "degree": degrees[identifier],
             }
         )
     return {
@@ -202,6 +191,7 @@ def render_explanation(result):
         for ref in result["related"]
     )
     lines.extend(_execution_lines(result))
+    lines.extend(degree_lines(result["degree"]))
     lines.extend(_status_lines(result))
     return "\n".join(lines)
 
@@ -284,6 +274,7 @@ def render_context(result):
             labels = dict.fromkeys(references[ref] for ref in item[field])
             lines.append(f"{label}: {', '.join(labels) or '(none)'}")
         lines.extend(_execution_lines(entry))
+        lines.extend(degree_lines(entry["degree"]))
     lines.extend(["", "Linked locations (deduplicated; complete related IDs in JSON):"])
     for (path, line), location in locations.items():
         types = sorted({ref["id"].split("~", 1)[0] for ref in location["refs"]})

@@ -10,6 +10,7 @@ Start with the [README](../README.md) for installation and a first check.
 - [Property testing](property-testing.md) — connect requirements to generated test cases.
 - [Model checking](model-checking.md) — use Alloy and Z3 for selected properties.
 - [Requirement granularity](requirement-granularity.md) — choose IDs and inspect change impact.
+- [Development review](development-review.md) — select policy, inspect gaps/hubs and resume source-bound review.
 
 ## Reference
 

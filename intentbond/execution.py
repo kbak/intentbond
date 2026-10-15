@@ -190,7 +190,12 @@ def explain_execution(identifier, graph, links, tests):
         if ref in seen:
             continue
         seen.add(ref)
-        pending.extend(graph.get(ref, {}).get("covered_by", []))
+        # OFT's reverse links also retain stale-revision diagnostics.
+        pending.extend(
+            relation["id"]
+            for relation in graph.get(ref, {}).get("covering_statuses", [])
+            if relation["status"] == "COVERING"
+        )
     artifacts = [by_id[ref] for ref in sorted(seen & by_id.keys())]
     status = (
         combined_status(item["status"] for item in artifacts)

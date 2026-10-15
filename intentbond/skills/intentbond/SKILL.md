@@ -88,6 +88,25 @@ establish semantic agreement or assertion adequacy.
 
 ## Run checks and report the result
 
+Use `ib impact --evidence PATH` to inspect changed-file artifact membership,
+native coverage gaps, required execution gaps and immediate-link hubs. A file
+without imported artifacts is an inspection cue, not proof of a missing requirement.
+Keep default revision enforcement optional; strict imported-content revision
+policy also applies to editorial edits. Use trusted `review_paths` for implementation
+roots when code-only changes should leave review pending.
+
+For an interrupted or larger review, optionally create a worklist with
+`ib review start --repo ROOT --evidence PATH --out NEW_DIRECTORY`. Use `ib review
+next`, `record` and `status` with `--worklist DIRECTORY`; record an exact task ID,
+`--state reviewed|deferred|pending` and a meaningful `-m` note. Deferred items remain
+incomplete. The plan covers changed files and immediate graph neighbors, so keep
+reading affected behavior beyond those links. Every resume matches current source
+and trusted policy. After a repair, run a fresh check and start a fresh worklist;
+old notes remain references, not completion of the new change. Progress is unsigned
+local accounting and never clears semantic review or supplies an assurance approval.
+See [development review](../../../docs/development-review.md) in the source checkout
+for full commands; installed packages retain these command instructions.
+
 When the supplied scope enables `tests.execution_links`, review affected test
 artifacts and their execution associations without waiting for an explicit user
 request. Check the artifact declarations, runner mappings or JUnit `oft_id`

@@ -140,15 +140,38 @@ class ExecutionReportTests(unittest.TestCase):
     def test_explain_traverses_existing_graph_without_reinterpreting_coverage(self):
         links = self.parse(self.case())
         graph = {
-            REQ: {"covered_by": ["dsn~timeout~1"]},
-            "dsn~timeout~1": {"covered_by": [TEST]},
-            TEST: {"covered_by": []},
+            REQ: {"covering_statuses": [{"id": "dsn~timeout~1", "status": "COVERING"}]},
+            "dsn~timeout~1": {"covering_statuses": [{"id": TEST, "status": "COVERING"}]},
+            TEST: {"covering_statuses": []},
         }
         status, artifacts, _ = explain_execution(
             REQ, graph, links, {"source_status": "matched", "status": "passed", "exit_code": 0}
         )
         self.assertEqual(status, "passed")
         self.assertEqual([item["id"] for item in artifacts], [TEST])
+
+    def test_explain_excludes_stale_relationships_at_every_hop(self):
+        # [utest->req~ib-execution-associations~1]
+        links = self.parse(self.case())
+        graph = {
+            REQ: {
+                "covered_by": ["dsn~timeout~1"],
+                "covering_statuses": [{"id": "dsn~timeout~1", "status": "COVERING"}],
+            },
+            "dsn~timeout~1": {
+                "covered_by": [TEST],
+                "covering_statuses": [{"id": TEST, "status": "COVERING"}],
+            },
+            TEST: {"covered_by": [], "covering_statuses": []},
+        }
+        tests = {"source_status": "matched", "status": "passed", "exit_code": 0}
+        for target in (REQ, "dsn~timeout~1"):
+            with self.subTest(target=target):
+                stale = copy.deepcopy(graph)
+                stale[target]["covering_statuses"][0]["status"] = "COVERING_WRONG_VERSION"
+                status, artifacts, _ = explain_execution(REQ, stale, links, tests)
+                self.assertEqual(status, "not_established")
+                self.assertEqual(artifacts, [])
 
     def test_configuration_is_explicit_and_only_available_with_junit(self):
         for options in (

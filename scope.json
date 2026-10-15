@@ -30,6 +30,7 @@
     ".github"
   ],
   "review_paths": [
+    "intentbond",
     "examples",
     "AGENTS.md"
   ],

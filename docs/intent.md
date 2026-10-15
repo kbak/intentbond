@@ -26,6 +26,11 @@ Optional shared assurance contracts should let these workflows reuse artifact,
 evidence, and review accounting without adopting a factory or adding mandatory
 documents, model passes, or approvals to existing integrations.
 
+Annotations and maintained requirement documents remain authoritative during
+development. Derived reports should expose gaps and useful neighbors, and optional
+review worklists should preserve progress against the exact checked change.
+Review accounting must not become an alternative store of traceability links.
+
 ## Intended outcomes
 
 ### Keep the user's purpose connected to the software
@@ -89,6 +94,18 @@ checks should stay visible as I adopt the baseline.
 Needs: req
 
 Source: [existing-project onboarding](recovery.md).
+
+### Resume review without losing its scope
+`intent~ib-resume-review~1`
+
+I want to interrupt and resume reviewing a software change without losing which
+files and related promises I inspected, deferred, or still need to examine.
+Progress for an earlier source version must not silently complete review of a
+new version. Recording progress must keep outstanding evidence and decisions visible.
+
+Needs: req
+
+Source: [development review](development-review.md).
 
 ### Investigate critical rules more deeply when needed
 `intent~ib-check-critical-rules~1`

@@ -5,7 +5,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from . import __version__, alloy, chc, smt
+from . import __version__, alloy, chc, smt, worklist
 from .check_output import render_check
 from .common import CheckError
 from .evidence import EXIT_CODES
@@ -123,6 +123,41 @@ def parser():
     explaining.add_argument("--format", choices=("text", "json"), default="text")
     explaining.add_argument("--oft-jar", type=Path, default=default_jar())
     explaining.add_argument("--java", default="java")
+    reviewing = commands.add_parser(
+        "review", help="Resume source-bound review progress; never grants approval"
+    )
+    review_commands = reviewing.add_subparsers(dest="review_action", required=True)
+    starting = review_commands.add_parser(
+        "start", help="Freeze changed files and immediate graph neighbors"
+    )
+    starting.add_argument("--evidence", type=Path, required=True)
+    starting.add_argument(
+        "--out", type=Path, required=True, help="New worklist directory outside repository/evidence"
+    )
+    starting.add_argument("--repo", type=Path, default=Path.cwd())
+    starting.add_argument(
+        "--scope", type=Path, help="Original caller-trusted scope, when supplied to check"
+    )
+    starting.add_argument("--oft-jar", type=Path, default=default_jar())
+    starting.add_argument("--java", default="java")
+    starting.add_argument("--format", choices=("text", "json"), default="text")
+    for verb in ("next", "status", "record"):
+        command = review_commands.add_parser(verb)
+        command.add_argument("--worklist", type=Path, required=True)
+        command.add_argument(
+            "--evidence", type=Path, help="Override location of the same evidence bundle"
+        )
+        command.add_argument(
+            "--repo", type=Path, help="Override checkout location; contents must match"
+        )
+        command.add_argument("--scope", type=Path, help="Original caller-trusted scope")
+        command.add_argument("--format", choices=("text", "json"), default="text")
+        if verb == "record":
+            command.add_argument("identifier", help="Exact frozen task ID from next/status")
+            command.add_argument("--state", choices=sorted(worklist.STATES), required=True)
+            command.add_argument(
+                "-m", "--message", default="", help="Review note; required for reviewed/deferred"
+            )
     install = commands.add_parser("install-oft", help="Download and checksum-verify OFT 4.9.0")
     install.add_argument("--destination", type=Path, default=default_jar().parent)
     recovery = commands.add_parser(
@@ -249,6 +284,34 @@ def main(argv=None):
             result = impact(args.evidence, args.oft_jar, args.java)
             print(json.dumps(result, indent=2) if args.format == "json" else render_impact(result))
             return 0
+        if args.action == "review":
+            if args.review_action == "start":
+                result = worklist.start(
+                    args.evidence, args.out, args.repo, args.oft_jar, args.java, args.scope
+                )
+            else:
+                options = {
+                    "evidence_path": args.evidence,
+                    "repo": args.repo,
+                    "scope_path": args.scope,
+                }
+                result = (
+                    worklist.record(
+                        args.worklist, args.identifier, args.state, args.message, **options
+                    )
+                    if args.review_action == "record"
+                    else worklist.status(args.worklist, **options)
+                )
+            print(
+                json.dumps(result, indent=2)
+                if args.format == "json"
+                else worklist.render(result, current_only=args.review_action == "next")
+            )
+            return (
+                4
+                if args.review_action in {"status", "next"} and result["status"] == "incomplete"
+                else 0
+            )
         if args.action == "explain":
             compact = args.compact or len(args.identifiers) > 1
             result = (

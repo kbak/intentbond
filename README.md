@@ -212,6 +212,13 @@ Compare requirement declarations, links, and source changes. The
 [granularity guide](docs/requirement-granularity.md) explains how to give
 independently changing promises their own IDs.
 
+Impact also shows changed files with no imported artifacts, native coverage and
+required execution gaps, and highly connected artifacts. These observations guide
+review without establishing completeness. Optional `ib review` worklists preserve
+notes and deferred items against the exact checked source. See
+[development review](docs/development-review.md) for policy selection and resumable
+review.
+
 ## Documentation and contributing
 
 See the [documentation index](docs/README.md) for guides, examples, and the

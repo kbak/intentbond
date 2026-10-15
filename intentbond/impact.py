@@ -3,11 +3,11 @@
 import re
 
 from . import boundaries
-from .common import CheckError, canonical, digest, read_json, within
-from .config import load_scope
-from .evidence import check_artifacts, read_statement
+from .common import CheckError, read_json, within
+from .evidence import load_bundle
+from .execution import retained_execution_links
 from .explain import graph_report
-from .oft import OFT_SHA256, OFT_VERSION
+from .inspection import inspect_changes, inspect_graph, render_inspection
 from .snapshot import read_entry
 
 TAG = re.compile(
@@ -156,15 +156,8 @@ def compare_graphs(before, after, scope):
 def impact(evidence_path, jar, java="java"):
     evidence_path = evidence_path.resolve()
     directory = evidence_path.parent
-    evidence = read_statement(read_json(evidence_path))
-    if evidence.get("schema_version") != 2 or evidence.get("oft") != {
-        "version": OFT_VERSION,
-        "sha256": OFT_SHA256,
-    }:
-        raise CheckError("Unsupported check evidence or OFT version")
-    check_artifacts(
-        evidence,
-        directory,
+    evidence, scope = load_bundle(
+        evidence_path,
         {
             "scope.json",
             "review.json",
@@ -174,29 +167,24 @@ def impact(evidence_path, jar, java="java"):
             "candidate-manifest.json",
         },
     )
-    scope = load_scope(directory / "scope.json")
-    if (
-        scope != evidence["scope"]["configuration"]
-        or digest(canonical(scope)) != evidence["scope"]["sha256"]
-    ):
-        raise CheckError("Scope differs from recorded policy")
-    for label in ("base", "candidate"):
-        if (
-            digest(canonical(read_json(directory / f"{label}-manifest.json")))
-            != evidence[label]["sha256"]
-        ):
-            raise CheckError("Manifest differs from recorded source identity")
     before, old_trace = graph_report(directory / "base-items.xml", jar, java)
     after, new_trace = graph_report(directory / "candidate-items.xml", jar, java)
     report = compare_graphs(before, after, scope)
     review = read_json(directory / "review.json")
+    inventory = boundaries.retained(evidence, directory, scope)
+    inspection = inspect_graph(
+        after, scope, evidence["tests"], retained_execution_links(evidence, directory, scope)
+    )
+    inspection["base_artifacts"] = [item for _, item in sorted(before.items())]
+    inspection["changed_files"] = inspect_changes(before, after, inventory, scope)
     report.update(
         schema_version=1,
         evidence=str(evidence_path),
         base=evidence["base"],
         candidate=evidence["candidate"],
         scope_sha256=evidence["scope"]["sha256"],
-        source_boundaries=boundaries.retained(evidence, directory, scope),
+        source_boundaries=inventory,
+        inspection=inspection,
         source_changes=review.get("source_changes"),
         source_classification_status="recorded_at_check"
         if "source_changes" in review
@@ -224,6 +212,7 @@ def render_impact(report):
     lines += [c["key"] + ": " + c["classification"] for c in report["declarations"]]
     lines += [c["path"] + ": " + c["classification"] for c in (report["source_changes"] or [])]
     lines += [
+        *render_inspection(report["inspection"]),
         "Recorded check: " + report["recorded_check_status"],
         "Source-line classification: " + report["source_classification_status"],
         "Human review effort: not measured",

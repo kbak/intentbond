@@ -1,6 +1,7 @@
 """Unsigned in-toto statements; no signing, transport, or approval framework."""
 
-from .common import CheckError, digest, relative_path
+from .common import CheckError, canonical, digest, read_json, relative_path
+from .config import load_scope
 
 EXIT_CODES = {
     "passed": 0,
@@ -31,6 +32,38 @@ def check_artifacts(evidence, directory, required):
         ):
             raise CheckError(f"Evidence artifact missing or changed: {name}")
     return artifacts
+
+
+def load_bundle(evidence_path, required=()):
+    """Validate saved check inputs without requiring a passing check or live source."""
+    from .oft import OFT_SHA256, OFT_VERSION
+
+    evidence_path = evidence_path.resolve()
+    directory = evidence_path.parent
+    evidence = read_statement(read_json(evidence_path))
+    if evidence.get("schema_version") != 2 or evidence.get("oft") != {
+        "version": OFT_VERSION,
+        "sha256": OFT_SHA256,
+    }:
+        raise CheckError("Unsupported check evidence or OFT version")
+    check_artifacts(
+        evidence,
+        directory,
+        {"scope.json", "base-manifest.json", "candidate-manifest.json", *required},
+    )
+    scope = load_scope(directory / "scope.json")
+    if (
+        scope != evidence["scope"]["configuration"]
+        or digest(canonical(scope)) != evidence["scope"]["sha256"]
+    ):
+        raise CheckError("Scope differs from recorded policy")
+    for label in ("base", "candidate"):
+        if (
+            digest(canonical(read_json(directory / f"{label}-manifest.json")))
+            != evidence[label]["sha256"]
+        ):
+            raise CheckError(f"{label} manifest does not match evidence identity")
+    return evidence, scope
 
 
 def statement(predicate, predicate_type=CHECK_TYPE):

@@ -95,6 +95,9 @@ or determine whether a requested behavior change is authorized.
 [execution-link profile](../intentbond/skills/intentbond/references/execution-links.md).
 With that profile, `linked_tests` retains per-artifact and per-case observations,
 and `execution_link_diagnostics` explains invalid or unavailable evidence.
+Execution attribution traverses only native OFT `COVERING` relationships.
+Stale-revision relationships remain graph diagnostics and cannot attribute a test
+result to a revised requirement or design artifact.
 Baseline explanations report
 `not_recorded_for_baseline` for tests, because this bundle's test run targets the
 candidate. `review` is the check's recorded gate, not a later approval. Recovery
@@ -377,6 +380,33 @@ they are outside the trace inputs. Review diffs show changed link targets rather
 than dereferenced contents.
 
 ## Evidence files
+
+### Derived development-review output
+
+`ib impact` additionally reports `inspection`: baseline/candidate OFT artifacts,
+changed-file annotation status, native coverage gaps, required execution gaps and
+resolved immediate-link hubs. `ib explain` additionally includes `degree` for each
+selected artifact. These are additive report fields; check evidence, scope defaults
+and exit meanings are unchanged.
+
+`ib review start --repo ROOT --evidence FILE --out NEW_DIRECTORY` freezes a local
+worklist. `ib review next|status|record --worklist DIRECTORY` resumes against the
+same evidence, source and trusted scope. Record requires an exact task ID and
+`--state pending|reviewed|deferred`; reviewed/deferred require `-m NOTE`. All accept
+`--format text|json`; matching checkout/bundle/scope locations can be overridden.
+Start alone uses OFT; subsequent operations validate retained artifacts and source
+without tracing or tests. Start/record exit 0 means command success; next/status
+exit 4 means pending/deferred progress, 0 means all frozen items reviewed; errors
+exit 2. These results grant no semantic approval and never clear check review.
+
+Plan/progress records use schema version 1 in a fresh directory outside source and
+evidence. Progress is bound to the full frozen plan and exact evidence bytes.
+Every changed captured file and relevant immediate artifact neighborhood remains
+enumerated; omissions/duplicates/reordering are errors. New evidence/source/policy
+requires a new queue. Atomic replacement and a writer lock prevent partial writes
+and competing updates. Notes are unsigned local records, not trusted assurance
+review receipts. See [development review](development-review.md) for state meanings,
+scope adoption, relocation and review boundaries.
 
 ### Optional execution links
 

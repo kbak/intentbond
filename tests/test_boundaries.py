@@ -112,6 +112,24 @@ class BoundaryTests(WorkflowFixture):
         self.assertEqual(counts["changed_selected_semantic_review_paths"], 0)
         self.assertEqual(result["source_boundaries"]["paths"][0]["path"], "session.py")
 
+    def test_implementation_review_selection_is_adopted_from_baseline(self):
+        # [utest->req~ib-review-selection~1]
+        scope = read_json(self.repo / "scope.json")
+        scope["review_paths"] = ["session.py"]
+        write_json(self.repo / "scope.json", scope)
+        self.commit()
+        self.base = self.git("rev-parse", "HEAD").strip()
+        with (self.repo / "session.py").open("a") as handle:
+            handle.write("\n# Implementation edit remains reviewable.\n")
+        scope.pop("review_paths")
+        write_json(self.repo / "scope.json", scope)
+        result = self.run_check(scope_path=None)
+        self.assertEqual(result["status"], "review_required")
+        change = next(
+            item for item in result["source_boundaries"]["paths"] if item["path"] == "session.py"
+        )
+        self.assertEqual(change["semantic_review_selection"], "review")
+
     def test_requirement_changes_keep_pending_review_and_distinct_file_counts(self):
         for path in ("requirements.md", "session.py", "tests/test_session.py"):
             self.replace(path, "req~session-expiration~1", "req~session-expiration~2")

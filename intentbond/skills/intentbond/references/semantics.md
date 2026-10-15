@@ -130,6 +130,17 @@ execution and audit records. Results with changed or unchecked source remain
 diagnostic and cannot support a test attestation or successful evidence
 verification.
 
+## Derived development-review observations
+
+Derived development-review observations retain these distinctions: native OFT
+coverage gaps, missing required execution, explicit scope exclusions, selected
+files without imported artifacts, and immediate-link degree are separate facts.
+An unannotated file does not establish a missing requirement; a hub is not an error.
+Optional source-bound worklists preserve pending/reviewed/deferred notes for one
+checked change. Completion is progress only and does not clear a pending review,
+grant approval, or become a trusted assurance review record. New evidence/source
+requires a fresh queue. Retained old notes remain historical observations.
+
 ## Example: explain a requirement
 
 Suppose `req~session-expiration~1` promises expiration at 30 minutes, has

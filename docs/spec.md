@@ -16,6 +16,9 @@ The root scope imports runtime code, all Python tests, maintained guides,
 packaged skills and build/test configuration. `examples/` is selected through
 `review_paths`; its files are captured and used by existing tests, while its
 illustrative requirements stay outside the product graph.
+The implementation root is also selected through `review_paths`, so implementation-only
+edits require review. Revision increases remain an optional project policy;
+this repository leaves them to review while OFT checks exact reference revisions.
 The command runs the existing Python suite with the committed opt-in pytest 9.1.1
 adapter and a fresh JUnit report. The scope governs ordinary `ib check` runs;
 CI automation is configured separately in [.github/workflows/ci.yml](../.github/workflows/ci.yml).
@@ -60,6 +63,7 @@ also identifies deferred areas and evidence limits. All IDs use
 | Individual execution | execution-associations, required-execution | The scope does not require individual execution metadata. |
 | Evidence and review | evidence-verification, change-review, boundary-report, review-selection | Review fixtures without importing their illustrative requirements; producer trust remains external. |
 | Inspection and impact | explain-context, impact-report, draft-reporting | Draft/coverage/trace/review states stay separate; no review-time benefit measured. |
+| Development review | review-observations, review-worklist | Derived gaps and hubs, source-bound local progress; no additional approval authority. |
 | Recovery | recovery-preservation, recovery-clean-start, recovery-citations, recovery-edits, recovery-lineage, recovery-draft-status, recovery-preflight | Citation validity does not prove faithful or complete extraction. |
 | Alloy | alloy-assertions, alloy-witness | Native bounds; remaining manifest/input-binding/error contracts need decomposition. |
 | SMT | smt-assumptions, smt-outcomes | Results concern the encoding, not automatic equivalence to application behavior. |
@@ -83,6 +87,52 @@ ways to strengthen their coverage.
 | recovery-citations, recovery-lineage | Exact citation and original-ID accounting regressions. | High: inspect the map for omitted exceptions, combined clauses and unjustified links; automation cannot perform this semantic review. |
 
 ## Requirements
+
+### Expose review observations without inferring completeness
+`req~ib-review-observations~1`
+
+Impact must expose exact imported artifacts in changed files, native OFT coverage
+gaps, required execution gaps, and resolved immediate-link degrees and neighbors.
+Distinguish trace exclusions, files outside tracing, deleted files and selected
+files without imported artifacts. Explain must expose the selected item's degree
+and retain existing execution outcomes. Counts are observations, not correctness,
+missing-requirement judgments or additional approval gates. Retained execution
+associations must be validated against their original JUnit/OFT artifacts.
+
+Covers:
+- `intent~ib-understand-change~1`
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest
+
+Implementation: [inspection.py](../intentbond/inspection.py), [impact.py](../intentbond/impact.py),
+[explain.py](../intentbond/explain.py). Assertions: [test_review_observations.py](../tests/test_review_observations.py).
+Documentation: [development review](development-review.md).
+
+### Freeze and resume source-bound review progress
+`req~ib-review-worklist~1`
+
+Optional review worklists must enumerate changed captured files, artifacts on
+those files or in changed declarations, and their immediate graph neighbors.
+Retain baseline context for changed/removed artifacts and show identical unchanged
+neighbors once. Bind progress to the frozen plan, exact evidence bytes, source
+manifests and trusted checking scope. Resume and recording must match the current
+worktree and original baseline/policy without rerunning tests, models or OFT.
+Refuse different evidence or source; a new context starts pending with no inherited
+completion. Preserve reviewed/deferred notes and explicit reopening. Detect omitted,
+duplicated or reordered progress entries; deferred work remains incomplete. Writes
+must be atomic and concurrent writers refused. Files stay outside the source and
+evidence bundle. Progress is local and unsigned, not a trusted assurance review,
+acceptance decision or proof of exhaustive impact review.
+
+Covers:
+- `intent~ib-resume-review~1`
+- `intent~ib-review-decisions~1`
+
+Needs: impl, utest
+
+Implementation: [worklist.py](../intentbond/worklist.py). Assertions: [test_worklist.py](../tests/test_worklist.py).
+Documentation: [development review](development-review.md).
 
 ### Bind optional assurance to a change and trusted policy
 `req~ib-assurance-context~1`
@@ -385,6 +435,9 @@ Existing assertions: [test_command_adapter_uses_real_execution_without_claiming_
 `req~ib-execution-associations~1`
 
 With the optional JUnit execution-link profile, associate observations with exact OFT test-artifact revisions and reject invalid supplied identities. Missing observations stay visible; a passing suite alone does not establish that a linked test ran.
+Attribute execution through only native OFT relationships that resolve to the exact
+artifact revision. Stale-revision diagnostic relationships must not supply linked
+execution for a revised requirement or design artifact.
 
 Covers:
 - `intent~ib-trust-evidence~1`
@@ -732,7 +785,7 @@ Implementation: [intentbond/config.py](../intentbond/config.py), [intentbond/rev
 
 Existing assertions: [test_review_only_fixtures_trigger_bound_review_without_importing_examples](../tests/test_boundaries.py); [test_review_paths_use_existing_literal_path_validation](../tests/test_boundaries.py).
 
-Evidence limit: The accepted scope selects examples/ for review only. This selection does not adopt the example applications as product requirements. Recovery rewrite restrictions are linked separately.
+Evidence limit: The accepted scope selects the implementation root, examples/ and AGENTS.md for additional review. This selection does not adopt the example applications as product requirements. Candidate scope edits cannot authorize their own policy. Recovery rewrite restrictions are linked separately.
 
 ### Present draft status, coverage and review separately
 `req~ib-draft-reporting~1`
