@@ -22,6 +22,10 @@ Existing project documents and tools remain usable. Factory orchestration,
 approval authority, deployment, and production monitoring belong to the
 surrounding workflow.
 
+Optional shared assurance contracts should let these workflows reuse artifact,
+evidence, and review accounting without adopting a factory or adding mandatory
+documents, model passes, or approvals to existing integrations.
+
 ## Intended outcomes
 
 ### Keep the user's purpose connected to the software

@@ -9,6 +9,10 @@ for how to interpret evidence.
 
 ## Commands
 
+Optional `ib assess` consumes existing evidence and review through a separate
+[version one assurance contract](assurance.md). It does not change the commands,
+scope, or check-evidence semantics below.
+
 | Command | Required arguments | Result |
 | --- | --- | --- |
 | `ib install-oft` | None; optional `--destination DIRECTORY` | Downloads and checksum-verifies the configured OFT release. |

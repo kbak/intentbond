@@ -4,6 +4,8 @@ Start with the [README](../README.md) for installation and a first check.
 
 ## Guides
 
+- [Assurance assessment](assurance.md) — optional shared contracts for manual, CI, and factory workflows.
+
 - [Recover a baseline](recovery.md) — document an existing project and review the proposal.
 - [Property testing](property-testing.md) — connect requirements to generated test cases.
 - [Model checking](model-checking.md) — use Alloy and Z3 for selected properties.

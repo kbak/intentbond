@@ -161,6 +161,10 @@ IntentBond also works manually and in CI. The
 [IntentMade integration](https://github.com/kbak/intentmade/blob/main/docs/traceability.md)
 is optional.
 
+Optional [assurance assessment](docs/assurance.md) combines existing check evidence,
+review, and required decisions without another test or model run. Manual tools,
+CI, and factories can use the same contract and optional SDLC process profile.
+
 ## Add property tests
 
 Use the [property-testing guide](docs/property-testing.md) to express selected

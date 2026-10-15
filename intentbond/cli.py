@@ -63,6 +63,19 @@ def parser():
     )
     root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="action", required=True)
+    assessing = commands.add_parser(
+        "assess", help="Assess existing evidence and review without rerunning tests"
+    )
+    assessing.add_argument("--repo", type=Path, default=Path.cwd())
+    assessing.add_argument("--change", type=Path, required=True)
+    assessing.add_argument(
+        "--policy", type=Path, required=True, help="Caller-trusted assurance policy"
+    )
+    assessing.add_argument("--out", type=Path, required=True)
+    assessing.add_argument("--evidence", type=Path)
+    assessing.add_argument("--review", type=Path)
+    assessing.add_argument("--decisions", type=Path)
+    assessing.add_argument("--scope", type=Path, help="Same trusted scope used for the check")
     alloy_install = commands.add_parser(
         "install-alloy", help="Download and checksum-verify optional Alloy 6.2.0"
     )
@@ -216,6 +229,22 @@ def parser():
 def main(argv=None):
     args = parser().parse_args(argv)
     try:
+        if args.action == "assess":
+            from .assurance import EXIT_CODES as assessment_codes
+            from .assurance import assess_files
+
+            result = assess_files(
+                args.repo,
+                args.change,
+                args.policy,
+                args.out,
+                evidence_path=args.evidence,
+                review_path=args.review,
+                decisions_path=args.decisions,
+                scope_path=args.scope,
+            )
+            print(f"{result['status']}: {args.out.resolve() / 'assessment.json'}")
+            return assessment_codes[result["status"]]
         if args.action == "impact":
             result = impact(args.evidence, args.oft_jar, args.java)
             print(json.dumps(result, indent=2) if args.format == "json" else render_impact(result))

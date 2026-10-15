@@ -84,6 +84,82 @@ ways to strengthen their coverage.
 
 ## Requirements
 
+### Bind optional assurance to a change and trusted policy
+`req~ib-assurance-context~1`
+
+Optional assessment must bind versioned context, evidence observations, review,
+and decisions to exact source, policy, and invocation identities. Reject unknown
+contract versions/fields and policy mismatch. Preserve separate satisfied,
+failed, incomplete, and decision-pending obligations; passing execution cannot
+satisfy a missing required decision. Assessment grants no acceptance authority.
+Existing check/verify behavior and evidence formats remain compatible.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+- `intent~ib-review-decisions~1`
+
+Needs: impl, utest
+
+Implementation: [assurance_contract.py](../intentbond/assurance_contract.py),
+[assurance.py](../intentbond/assurance.py). Assertions: [test_assurance.py](../tests/test_assurance.py).
+
+### Reuse semantic review accounting across workflows
+`req~ib-assurance-review~1`
+
+Portable assessment must require exact scoped repository/path accounting,
+resolve cited requirement IDs/revisions against the supplied source index, and
+retain missing/uncertain traceability and intent conflicts. A satisfied review
+label cannot erase these outcomes. Apply caller-trusted reviewer restrictions
+and preserve unknown independence. Structural validation does not establish
+semantic relevance, producer authentication, or approval authority.
+
+Covers:
+- `intent~ib-review-decisions~1`
+
+Needs: impl, utest
+
+Implementation: [assurance_review.py](../intentbond/assurance_review.py),
+[assurance.py](../intentbond/assurance.py). Assertions: [test_assurance.py](../tests/test_assurance.py).
+
+### Offer optional declarative process profiles
+`req~ib-assurance-profile~1`
+
+Lightweight and AI-native SDLC profiles must require no new document roles by
+default. For supplied task artifacts, the SDLC profile protects accepted intent,
+specification, and acceptance contents while allowing current plans to evolve.
+Custom named profiles may require/protect selected roles. Profiles must be
+versioned trusted policy data, never candidate-selected executable plugins.
+
+Covers:
+- `intent~ib-adopt-existing-project~1`
+- `intent~ib-preserve-purpose~1`
+
+Needs: impl, utest
+
+Implementation: [assurance.py](../intentbond/assurance.py). Assertions: [test_assurance.py](../tests/test_assurance.py).
+
+### Assess existing evidence at a standalone source boundary
+`req~ib-assurance-source~1`
+
+Standalone assessment must validate baseline/candidate contents, declared regular
+artifacts, complete selected changed paths, and applicable designated check
+evidence using existing verification without rerunning tests or OFT. Reject
+another invocation's bundle, invented retained requirement indexes, and changed
+source/policy. Preserve pending specification/test review. Without OFT evidence,
+execution and traceability remain unestablished; source assessment needs no Java
+or factory. Caller-selected accepted hashes and unsigned producer records remain
+external trust assumptions.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+- `intent~ib-adopt-existing-project~1`
+
+Needs: impl, utest
+
+Implementation: [assurance.py](../intentbond/assurance.py).
+Assertions: [manual boundary](../tests/test_assurance.py),
+[real check evidence](../tests/test_assurance_evidence.py).
+
 `Needs: impl, utest` requires structural links to implementation and tests; it
 does not mean one assertion proves the whole statement.
 
