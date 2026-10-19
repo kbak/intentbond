@@ -143,6 +143,15 @@ exit codes and validation policy are unchanged; consumers needing structured
 results should read evidence.json. `review.patch` covers changes selected for semantic review,
 so the caller still reviews the full candidate Git diff, including new files.
 
+The CLI also shows available recorded durations: the sum of OFT import/trace
+commands and the configured test command separately. Missing durations stay
+absent. These are command timings, not total check time or agent-effort measurements.
+`check --progress` follows `tests.log` on stderr while validation runs, including
+output from commands that fail or time out. Output may be delayed by the test
+program's buffering. The retained log remains complete and unchanged; stdout
+keeps the normal final summary. Following is opt-in, and a display failure does
+not change validation, its exit code, or the semantic review gate.
+
 For `verify`, use the same baseline and scope as the original check. If the
 default baseline has moved, pass its original commit with `--base`.
 

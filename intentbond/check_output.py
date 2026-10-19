@@ -1,10 +1,59 @@
 """Concise CLI feedback; the retained evidence remains the complete record."""
 
+import codecs
+from contextlib import contextmanager
+from threading import Event, Thread
+
 from junitparser import JUnitXmlError
 
 from . import boundaries
 from .common import CheckError, xml_tree
 from .testing import report_cases
+
+
+@contextmanager
+# [impl->req~ib-check-progress~1]
+def follow_test_log(out, stream=None):
+    """Optionally follow the retained log without changing command execution."""
+    if stream is None or out.exists() or out.is_symlink():
+        yield
+        return
+    stopped = Event()
+
+    def follow():
+        decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
+        source = None
+        try:
+            stream.write(f"Following test output: {out.resolve() / 'tests.log'}\n")
+            stream.flush()
+            while True:
+                if source is None:
+                    try:
+                        source = (out / "tests.log").open("rb")
+                    except FileNotFoundError:
+                        pass
+                if source is not None:
+                    while chunk := source.read(8192):
+                        stream.write(decoder.decode(chunk))
+                        stream.flush()
+                if stopped.is_set():
+                    stream.write(decoder.decode(b"", final=True))
+                    stream.flush()
+                    return
+                stopped.wait(0.1)
+        except (OSError, ValueError):
+            pass  # Display failure cannot replace validation or its exit status.
+        finally:
+            if source is not None:
+                source.close()
+
+    thread = Thread(target=follow, name="ib-test-output", daemon=True)
+    thread.start()
+    try:
+        yield
+    finally:
+        stopped.set()
+        thread.join(timeout=1)
 
 
 def _excerpt(value, limit):
@@ -54,6 +103,20 @@ def render_check(result, out):
         lines.append(f"source: {result['candidate']['sha256']}")
     tests = result["tests"]
     lines.append(f"tests: {tests['status']} ({tests['level']}); source={tests['source_status']}")
+    # [impl->req~ib-check-progress~1]
+    trace_durations = [
+        command["duration_seconds"]
+        for snapshot in result.get("trace", {}).values()
+        for key in ("import", "trace")
+        if "duration_seconds" in (command := snapshot.get(key, {}))
+    ]
+    timings = []
+    if trace_durations:
+        timings.append(f"trace commands={sum(trace_durations):.3f}s")
+    if "duration_seconds" in tests:
+        timings.append(f"tests={tests['duration_seconds']:.3f}s")
+    if timings:
+        lines.append("timings: " + "; ".join(timings))
     if "counts" in tests:
         lines.append("counts: " + ", ".join(f"{k}={v}" for k, v in tests["counts"].items()))
     if "error" in tests:

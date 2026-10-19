@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 from . import __version__, alloy, chc, smt, worklist
-from .check_output import render_check
+from .check_output import follow_test_log, render_check
 from .common import CheckError
 from .evidence import EXIT_CODES
 from .explain import explain, explain_many, render_context, render_explanation
@@ -252,6 +252,11 @@ def parser():
     )
     checking.add_argument("--oft-jar", type=Path, default=default_jar())
     checking.add_argument("--java", default="java")
+    checking.add_argument(
+        "--progress",
+        action="store_true",
+        help="Follow retained test output on stderr while checking",
+    )
     verifying.add_argument(
         "--allow-pending-review",
         action="store_true",
@@ -411,15 +416,16 @@ def main(argv=None):
                     "Temporary directory is inside the repository; supply --out outside it"
                 )
             args.out = Path(tempfile.mkdtemp(prefix="ib-evidence-")) / "check"
-        result = check(
-            args.repo,
-            args.scope,
-            args.base,
-            args.candidate,
-            args.out,
-            args.oft_jar,
-            args.java,
-        )
+        with follow_test_log(args.out, sys.stderr if args.progress else None):
+            result = check(
+                args.repo,
+                args.scope,
+                args.base,
+                args.candidate,
+                args.out,
+                args.oft_jar,
+                args.java,
+            )
         print(render_check(result, args.out))
         return EXIT_CODES[result["status"]]
     except (CheckError, OSError, ValueError, KeyError, TypeError) as exc:

@@ -78,6 +78,14 @@ suffice; unchanged promises need no wording or ID edits, and individual files or
 functions need no arbitrary annotations. Check whether the implementation satisfies
 the promise and the assertions verify the affected behavior. Code-only changes
 need this assessment too. Use focused source reads around the links.
+For substantial semantic changes, ask whether the specification itself admits a
+case the intended system forbids, or excludes a required successful case. Look
+for a small counterexample using independent source examples, a reference
+implementation or another suitable oracle; account for its assumptions and known
+departures. Proofs and tests derived from the same specification can share an
+omission. Preserve useful counterexamples as regressions and resolve conflicting
+meanings through the existing review. This is a focused review prompt, not a
+mandatory new tool or validation pass; see the [example](references/semantics.md#independent-semantic-checks).
 After a repair, inspect its delta and affected relationships; repeat a full
 review if the repair changes the scope or invalidates earlier conclusions.
 
@@ -137,11 +145,15 @@ complete bundle. Start with the printed status, counts, diagnostics and artifact
 paths. Open detailed logs/reports for failures or unresolved questions; success
 does not require dumping every retained artifact into context. The check already
 runs the configured tests; repeat them separately only for a concrete need.
+For long checks, add `--progress` to follow retained test output on stderr. The
+final output shows recorded trace-command and test durations separately; those
+timings do not measure agent effort or all checking overhead.
 
-Inspect required changes in review.json. review.patch contains specification/test
-changes, not the full candidate diff; it need not duplicate a review already
-covering those edits. Exit 0 passes automation; exit 4 leaves specification/test
-review pending. Other exits cannot establish completion. Repair in-scope failures;
+Inspect required changes in review.json. review.patch contains changes selected
+by specification_paths, test_paths and optional review_paths; it need not duplicate
+a review already covering those edits or contain the full candidate diff.
+Exit 0 passes automation; exit 4 leaves semantic review pending.
+Other exits cannot establish completion. Repair in-scope failures;
 report prerequisite or baseline defects without bypassing policy. Changed source
 requires a fresh check; an earlier passing bundle cannot replace a failed run.
 

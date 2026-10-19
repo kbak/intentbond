@@ -124,6 +124,10 @@ and source-capture details.
 Open `summary.md` in the reported evidence directory for changed requirements,
 test results, and pending review.
 
+For long checks, use `ib check --progress` to follow the retained test log on
+stderr. The final CLI summary separates recorded trace-command and test durations;
+it does not include all source-capture overhead or measure agent effort.
+
 | Exit from `ib check` | Meaning |
 | --- | --- |
 | 0 | Automated checks passed; no selected changes triggered the semantic review gate. |

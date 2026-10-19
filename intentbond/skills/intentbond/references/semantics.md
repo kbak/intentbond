@@ -130,6 +130,19 @@ execution and audit records. Results with changed or unchecked source remain
 diagnostic and cannot support a test attestation or successful evidence
 verification.
 
+## Independent semantic checks
+
+A proof establishes its stated proposition; it can still formalize an incomplete
+specification. In [clafer-lean's declaration-disjointness correction](https://github.com/kbak/clafer-lean/pull/88),
+a candidate sharing one object between unrelated declarations satisfied the
+existing Lean semantics but was rejected by generated Alloy. The correction added
+the missing requirement, carried it through the implementation and proofs, and
+retained the overlapping candidate as a negative regression.
+
+Use such disagreements to inspect the requirement, implementation and oracle.
+The oracle can also be wrong or implement a different accepted contract; agreement
+alone establishes neither universal correctness nor faithful intent capture.
+
 ## Derived development-review observations
 
 Derived development-review observations retain these distinctions: native OFT

@@ -59,7 +59,7 @@ also identifies deferred areas and evidence limits. All IDs use
 | Baseline and policy | policy-source, baseline-selection | External-policy trust; further ambiguous-merge-base and schema cases. |
 | Tracing and revisions | coverage, revision-policy, empty-scope, python-annotations | Real Python comments only; other languages keep OFT recognition. |
 | Source capture | source-identity, safe-symlinks, source-stability | Preserve exclusions and the change-then-restore observation limit. |
-| Test results | junit-completion, fresh-reports, report-merge, command-results, pytest-subtests | Parent/subtest counts are separate; pin and plugin compatibility remain explicit. |
+| Test results | junit-completion, fresh-reports, report-merge, command-results, pytest-subtests, check-progress | Parent/subtest counts are separate; pin and plugin compatibility remain explicit. |
 | Individual execution | execution-associations, required-execution | The scope does not require individual execution metadata. |
 | Evidence and review | evidence-verification, change-review, boundary-report, review-selection | Review fixtures without importing their illustrative requirements; producer trust remains external. |
 | Inspection and impact | explain-context, impact-report, draft-reporting | Draft/coverage/trace/review states stay separate; no review-time benefit measured. |
@@ -430,6 +430,28 @@ Documentation: [docs/contract.md](contract.md).
 Implementation: [intentbond/testing.py](../intentbond/testing.py).
 
 Existing assertions: [test_command_adapter_uses_real_execution_without_claiming_case_counts](../tests/test_workflow.py); [test_command_results_do_not_gain_test_counts](../tests/test_explain.py).
+
+### Show check timings and optional live output
+`req~ib-check-progress~1`
+
+The check CLI displays available recorded OFT import/trace-command and test-command
+durations separately, without inventing missing timings or claiming total check
+time. Optional `--progress` follows retained test output on stderr during execution.
+Default stdout retains the final status/evidence first line. Following must not
+rerun commands, modify retained logs, or change timeout behavior, check exit codes
+or pending semantic review; display failures cannot replace the validation result.
+
+Covers:
+- `intent~ib-understand-change~1`
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest
+
+Documentation: [check output](contract.md#check-and-verify-inputs).
+
+Implementation: [check_output.py](../intentbond/check_output.py), [cli.py](../intentbond/cli.py).
+
+Existing assertions: [live output and timing regressions](../tests/test_check_output.py).
 
 ### Keep linked execution distinct from suite success
 `req~ib-execution-associations~1`

@@ -28,6 +28,14 @@ ticket or decision record when it helps explain a current choice; do not invent
 quotations or provenance. Keep proposals and open questions explicit, and update
 the current account when an authorized decision changes the desired outcome.
 
+Give each decision or contract one authoritative home in the existing documents.
+Update that text and link to it from overviews, architecture and task notes instead
+of repeating its detailed scope or delivery status. Keep conditions needed to
+understand a claim beside the claim. Name a decision's meaning when citing its ID
+and link its definition so readers need not reconstruct an issue conversation.
+Use a small documentation map when ownership is otherwise unclear; no new document
+is required. Preserve stable IDs, useful anchors and source provenance when consolidating.
+
 ## Link intent to the specification
 
 Use stable IDs for independently meaningful outcomes. For example, an intent item
