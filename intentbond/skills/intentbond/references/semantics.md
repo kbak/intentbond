@@ -133,7 +133,7 @@ verification.
 ## Independent semantic checks
 
 A proof establishes its stated proposition; it can still formalize an incomplete
-specification. In [clafer-lean's declaration-disjointness correction](https://github.com/kbak/clafer-lean/pull/88),
+specification. In [clafer-semantics's declaration-disjointness correction](https://github.com/kbak/clafer-semantics/pull/88),
 a candidate sharing one object between unrelated declarations satisfied the
 existing Lean semantics but was rejected by generated Alloy. The correction added
 the missing requirement, carried it through the implementation and proofs, and
