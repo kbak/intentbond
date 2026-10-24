@@ -86,6 +86,11 @@ departures. Proofs and tests derived from the same specification can share an
 omission. Preserve useful counterexamples as regressions and resolve conflicting
 meanings through the existing review. This is a focused review prompt, not a
 mandatory new tool or validation pass; see the [example](references/semantics.md#independent-semantic-checks).
+For specification or property discovery work, use the
+[property review guidance](../property-testing/SKILL.md#discover-and-review-properties)
+to examine boundary outcomes, retained assumptions and composition. Keep the
+resulting obligations and gaps in the maintained specification alongside their
+requirements, with links to executable evidence.
 After a repair, inspect its delta and affected relationships; repeat a full
 review if the repair changes the scope or invalidates earlier conclusions.
 

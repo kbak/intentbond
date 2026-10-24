@@ -16,6 +16,34 @@ requirements using the existing test workflow. Preserve their meaning and retain
 regression examples for any defects found." The skill reuses existing IDs and
 does not require another requirements document or approval stage.
 
+## Discover properties in the maintained specification
+
+Keep user outcomes and rationale in `intent.md`, and requirements, property
+statements, shared definitions, interface contracts, assumptions and remaining
+verification work in `spec.md`, or the project's established equivalents. Put
+each property beside the requirement it refines; reference shared sections by
+stable anchors. Tests, native models, proof sources and generated evidence stay
+in their normal locations and are linked from the specification. Tool-managed
+recovery records remain provenance, not a second authored specification.
+
+The skill's [discovery and review pass](../intentbond/skills/property-testing/SKILL.md#discover-and-review-properties)
+starts from the intended outcome, then examines boundary evidence, retained
+assumptions, successful and failed outcomes, and composition. For each selected
+property, give a violating trace and a permitted behavior; classify proposed
+meaning separately from observed behavior and established evidence. Record
+uninspected or uncovered work without claiming exhaustive coverage.
+
+For example, an executor can correctly return success when no operations are
+eligible while its caller incorrectly declares a phase complete even though that
+phase contains failed work. The specification must distinguish invocation success
+from phase completion and define the evidence each requires. A callback failure
+after settlement raises another obligation: which recorded effects and evidence
+must survive? Neither rule follows solely from a correct selection helper.
+
+These questions strengthen authoring and review. They do not make every inferred
+rule an accepted requirement or every Lean-shaped statement a proof. There is no
+mandatory extra property layer, JSON catalog, or exhaustive plan for routine edits.
+
 ## When to add and update properties
 
 When [documenting an existing project](recovery.md), identify existing properties

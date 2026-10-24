@@ -23,6 +23,14 @@ observation point to source symbols. Explain what is omitted and whether the
 abstraction restricts behavior or conservatively admits extra behavior. A shared
 property ID or passing model check does not prove that the translation is sound.
 
+Keep shared definitions, boundary contracts, assumptions and unresolved composition
+obligations in the maintained specification beside the relevant requirements;
+link the native model and retained results there. Use the
+[property discovery pass](../property-testing/SKILL.md#discover-and-review-properties)
+for uncertain guarantees. Model evidence needed by consumers, state retained over
+callbacks or replacement, and effects preceding failure. A local lemma does not
+discharge callers or establish the whole-system guarantee.
+
 Record initial states, transition guards, frame conditions, environment behavior,
 atomic operations, and arithmetic/clock assumptions. Never encode the guarantee
 being checked as a fact, strengthen its preconditions, or remove failure paths to

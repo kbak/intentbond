@@ -48,6 +48,16 @@ can describe the outcomes or exceptions of one operation. Consider a split when
 one promise needs to evolve independently, following the
 [granularity guide](requirement-granularity.md).
 
+The packaged authoring, recovery, property-testing and model-checking guidance
+keeps authored property analysis in the existing intent/specification documents.
+Properties refine their requirements in place; shared definitions, interface
+contracts, assumptions and remaining obligations use referenced sections. Native
+tests, models, proofs and generated results remain linked artifacts. The
+[discovery pass](../intentbond/skills/property-testing/SKILL.md#discover-and-review-properties)
+examines positive evidence, retained assumptions, nonvacuity and composition while
+preserving proposal status and source/evidence limits. This is authoring guidance,
+not a new runtime schema or an automated guarantee of property adequacy.
+
 ## Feature map
 
 Each mapped requirement has supporting implementation and test links. The map
@@ -69,7 +79,7 @@ also identifies deferred areas and evidence limits. All IDs use
 | SMT | smt-assumptions, smt-outcomes | Results concern the encoding, not automatic equivalence to application behavior. |
 | CHC/Spacer | chc-certificates | Invariant/trace obligations do not establish liveness or application equivalence. |
 | Packaging, installation and platforms | Deferred | Existing CI jobs are not replaced by this local Python check. |
-| Agent extraction and semantic review | Deferred | Review preserved exceptions and unsupported wording against original citations. |
+| Agent extraction and semantic review | Packaged guidance; semantic enforcement deferred | Review independent guarantees, boundary outcomes, retained assumptions and composition. Preserve unresolved definitions and evidence limits in the specification; automation does not certify the resulting statements. |
 | Example applications / external IntentMade integration | Outside product requirement graph | Examples remain captured and selected for review; external integration is a separate project. |
 
 ## Existing properties and follow-ups

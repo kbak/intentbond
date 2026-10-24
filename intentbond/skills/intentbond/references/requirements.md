@@ -6,6 +6,15 @@ and design as a specification. Use the project's existing Markdown documents;
 requirements OpenFastTrace (OFT) IDs and link them to related design, code, and
 tests so later changes can be checked and reviewed.
 
+Keep authored property statements, shared model definitions, interface contracts,
+assumptions, evidence links and unresolved verification work in the specification,
+beside the requirements they refine or in referenced sections. Outcomes and
+rationale belong in the intent document. Use headings and stable anchors as the
+documents grow; preserve established project organization and surviving OFT IDs.
+Native tests, solver models, proof sources and generated evidence remain separate
+linked artifacts. This does not require another document hierarchy, a property
+JSON schema, or new CLI fields; tool-managed recovery records remain required.
+
 Use the shared [concepts and result meanings](semantics.md), included alongside this guidance
 in agent contexts. Keep coverage, origin, approval and execution evidence distinct.
 
@@ -116,6 +125,15 @@ do not require every requirement to have a formula. Follow the
 test-search limits distinct from promised behavior. Conflicting prose and logic
 need a review decision, and a stronger precondition or narrower domain can weaken
 the promise. A textual formula is not proof or evidence that a test ran.
+
+When establishing or substantively reviewing these rules, use the
+[property discovery and review pass](../../property-testing/SKILL.md#discover-and-review-properties).
+Derive the intended guarantee independently of implementation choices, examine
+boundary outcomes and retained assumptions, and check whether component properties
+can all hold while the intended outcome fails. Keep proposed definitions and
+uninspected or uncovered behavior visible in the specification. Approval status
+and evidence status are separate: distinguish a proposed check, an executed search
+and a proved statement with its assumptions and source correspondence.
 
 Carry agreed text, IDs/revisions, acceptance criteria, documentation paths and
 authorized promise changes into the existing handoff. Keep unapproved proposals

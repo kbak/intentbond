@@ -1,6 +1,6 @@
 ---
 name: property-testing
-description: Identify, add, and maintain property tests for reviewed requirements using the project's existing test library and runner.
+description: Discover and review behavioral properties in specifications, then add and maintain authorized property tests using the project's existing library and runner.
 ---
 
 A property is a rule intended to hold across a defined set of inputs or states.
@@ -9,9 +9,63 @@ An executable property test searches for violations using generated inputs.
 When documenting an existing project's requirements with `ib recover`, identify
 existing tests, proposed properties, input domains, and missing checks in the
 feature table or claim notes. Preserve tests, generators, dependencies, and runner
-configuration during that documentation step. Add or change tests once the starting
-requirements are reviewed and the task authorizes test work. Passing documentation
+configuration during that documentation step. Keep authored property descriptions
+beside their requirements in `spec.md` or the project's established equivalent;
+keep outcomes and rationale in `intent.md`. Shared definitions, boundary contracts,
+assumptions and remaining gaps can be sections of that same specification. Link
+native tests, models, proofs and generated evidence from there. Do not introduce
+a parallel verification document hierarchy or property JSON catalog by default.
+Add or change tests once the starting requirements are reviewed and the task
+authorizes test work. Passing documentation
 checks do not approve inferred intent.
+
+## Discover and review properties
+
+Use this pass when establishing a specification, identifying missing properties,
+or reviewing a substantive semantic change. Scale depth to the requested scope;
+ordinary edits do not require an exhaustive verification plan.
+
+Start with guarantees supported by user outcomes, documented contracts or
+applicable normative sources, then compare implementation behavior. Record an
+unavailable source or disputed interpretation as unresolved. Identify the relevant
+entry paths, configurations, producers and consumers, including failure paths.
+Distinguish inspected behavior from merely cited files; retain uncovered in-scope
+work with a next step rather than implying that links or property counts close it.
+
+For each selected obligation, make the following concrete beside its existing ID:
+
+- **Observable meaning:** define the state, inputs, outcomes, quantifiers and
+  observation point. Define load-bearing terms such as valid, authorized or
+  completed. Keep a logical statement and its prose equivalent in scope. Account
+  for machine arithmetic, conversions and sequences where they affect the promise.
+- **Boundary evidence:** identify what justifies granting authority, trusting a
+  result or completing a phase. Enumerate relevant success, pending, partial,
+  refusal and failure outcomes and each caller's handling. An empty eligible set
+  or an absence of errors does not by itself establish the caller's completion
+  condition.
+- **Retained assumptions:** across callbacks, retries, replacement or asynchronous
+  work, identify the identity, generation, configuration or authorization retained,
+  what can change, and what must hold when it is used again. Express accepted
+  boundary invariants as properties; a table-only concern remains a gap.
+- **Nonvacuity:** give a concrete violating trace or counterimplementation and a
+  permitted behavior. Require successful behavior under justified conditions so
+  reject-all cannot satisfy the functional specification. Cover effects before
+  failure as well as successful returns; do not assume away feasible violations.
+- **Composition:** distinguish environmental/cryptographic premises, external
+  dependency contracts and in-scope claims needing proof. Name the producers and
+  consumers of the latter. Resolve circular dependencies with a joint invariant
+  or induction; trusting a dependency does not prove its callers meet its contract.
+
+Try to construct a system failure while all selected component properties hold.
+Use the resulting trace to repair the statement or expose a missing obligation.
+Classify a hypothetical counterimplementation, observed behavior, disputed
+requirement and validated defect separately. A proposed check is not execution
+evidence; record actual methods, results and limits independently of approval.
+Lean-style notation is optional, and a statement with a proof placeholder is not
+a proof. Maintain these notes in the specification; preserve tool-managed recovery
+records and their citations without turning them into a second authored contract.
+
+## Implement and maintain checks
 
 Improve the maintained test suite for the selected behavior. Start from approved
 requirements and their linked implementation; inferred behavior is a proposed
@@ -47,6 +101,9 @@ only part of it. A formula alone supplies no execution or proof evidence.
 Exercise the actual implementation. Specify generators for relevant boundaries,
 invalid inputs, and operation sequences; generated valid inputs must not silently exclude promised
 behavior. Pair safety constraints with required successful behavior where relevant.
+Check that the premises admit cases and the assertion constrains the implementation,
+including the caller obligations identified above. An independently correct helper
+does not establish that every path invokes it or preserves its result.
 
 Use the existing runner and one appropriate library. Read only the relevant guide:
 [Hypothesis](references/python.md), [fast-check](references/typescript.md),

@@ -67,11 +67,25 @@ baseline.
 
 ## Identify properties and missing tests
 
+Use the maintained intent and specification documents as the authored home:
+outcomes and rationale in `intent.md`, properties and their definitions, boundary
+contracts, assumptions, evidence links and gaps in `spec.md`, or the project's
+established equivalents. Preserve OFT identities and recovery provenance records.
+Use sections and cross-references rather than generating a separate verification
+document hierarchy by default.
+
 While documenting the project, identify existing properties: rules intended to
 hold across a defined set of inputs or states. Record their requirement IDs,
 assumptions, existing tests, and missing checks in the same feature table or
 claim notes. Distinguish documented promises from inferred behavior and suggest
 which missing tests would be most valuable.
+
+Use the [property discovery pass](property-testing.md#discover-properties-in-the-maintained-specification)
+to examine outcome handling, evidence for completion, assumptions retained across
+callbacks or retries, and obligations shared by producers and consumers. Give
+concrete violating and permitted behaviors for selected properties. Keep proposed
+interpretations and uncovered in-scope work explicit; a source citation or a
+long property list does not establish completeness.
 
 Preserve existing tests during this step so they remain evidence of the original
 behavior. After the requirements are reviewed, use the

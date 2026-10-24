@@ -97,6 +97,14 @@ avoid redundant layers. Reuse existing IDs for surviving obligations; start new
 ones at revision 1. Preserve useful existing structure. Restructure where it
 clarifies scattered evidence, not merely to shorten already clear requirements.
 
+Use `intent.md` for outcomes and rationale and `spec.md` for requirements and
+property analysis, or maintain the project's established equivalents. Keep shared
+definitions, interface/outcome contracts, assumptions, evidence links and open
+verification work as sections of the specification. Preserve tool-managed claims
+and provenance records; they support recovery without replacing the authored
+contract. A separate verification document hierarchy or property catalog is not
+required.
+
 Keep a small feature table in the proposed Markdown: documented (IDs), deferred
 (reason/next step), or outside scope. Group by meaningful behavior, not every file
 or function; no new schema or exhaustive catalog is needed. In the omissions pass,
@@ -111,7 +119,8 @@ what they actually check and their domain/assumptions. Identify a few useful
 missing properties from the requirements, prioritizing critical logic and known
 gaps. Keep these in the existing feature table or claim notes, with linked
 requirement IDs, documented/inferred origin, available checks, and the next action.
-Uncertain intent belongs in open_issues. A candidate property is a proposal;
+Keep unresolved product meanings visible in the specification and record uncertain
+intent in open_issues. A candidate property is a proposal;
 current code or a passing test cannot establish that it is an accepted promise.
 
 Use the [property-testing workflow](../property-testing/SKILL.md), or its inline
@@ -119,6 +128,10 @@ copy, for this discovery and handoff. During recovery, preserve executable tests
 generators, dependencies and runner configuration. Do not install a new testing
 library or generate tests as part of the recovery proposal. The shared workflow's
 authoring steps apply during authorized implementation, as described below.
+Its discovery pass checks producer/consumer outcomes, evidence for completion,
+assumptions retained across callbacks or retries, and concrete violating/permitted
+traces. Apply it within the selected scope and session budget; record remaining
+in-scope obligations rather than shrinking a promise or claiming completeness.
 
 Within that same short pass, try to disprove a few broad or uncertain requirements:
 what option, input, platform or interaction could make the sentence false? Use

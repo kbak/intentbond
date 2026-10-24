@@ -17,6 +17,10 @@ the maintained document captures the current problem, decisions, reasons, useful
 alternatives, and open questions. Keep proposals distinguishable from decisions
 carried into the specification.
 
+Property discovery should deepen those same documents: keep shared definitions,
+assumptions, boundary contracts and verification gaps connected to the promises
+they clarify, with links to executable evidence in its normal location.
+
 IntentBond supports people working manually, with coding agents, or in CI.
 Existing project documents and tools remain usable. Factory orchestration,
 approval authority, deployment, and production monitoring belong to the
