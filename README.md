@@ -8,7 +8,25 @@ It checks links across Git versions, runs your tests, and saves results tied to
 the source checked. Optional Alloy and Z3 checks add formal verification for
 selected properties.
 
+For the motivation and a worked example, see
+[Proving the Wrong Thing, Faster](docs/presentations/proving-the-wrong-thing-faster/),
+a 12-minute presentation on keeping intent, specifications, code, and evidence
+aligned as software evolves.
+
 ## How it works
+
+IntentBond supports four activities throughout development:
+
+- **Connect:** link intent and requirements to implementation, tests, and evidence.
+- **Guide:** use deterministic diagnostics and change-impact information to decide
+  what to update, preserve, and recheck.
+- **Validate:** agents and reviewers assess behavior and assertions against intent,
+  repair mismatches, and seek clarification when requirements are unclear.
+- **Refine:** develop selected requirements into precise properties and formal
+  models, checked through property tests and optional verification tools.
+
+These activities repeat as the project changes. Automated checks supply evidence;
+reviewers remain responsible for judging meaning and acceptance.
 
 Capture user outcomes and rationale in `intent.md`, and concrete requirements and
 design in `spec.md`. These are suggested document roles; existing filenames such

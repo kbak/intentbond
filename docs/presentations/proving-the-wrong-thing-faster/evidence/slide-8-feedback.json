@@ -1,0 +1,79 @@
+{
+  "description": "Executed Lean privileged-timeout fixture. Slide diagnostics are condensed. Lean 4.35.0 runs native #guard boundary checks.",
+  "lean_version": "Lean (version 4.35.0, x86_64-unknown-linux-gnu, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)",
+  "import_adapter": {
+    "scope": "demo only; no installed IntentBond or OFT source changed",
+    "reason": "OFT 4.9.0 does not natively import .lean files.",
+    "configuration": "TAG_ALIASES['.lean'] = '.lua'",
+    "semantics": "Use the existing OFT -- comment tag importer on byte-identical temporary aliases; retain original .lean source paths. Lean compiles the original sources."
+  },
+  "slide7": {
+    "implementation": "-- [impl-\u003ereq~session-expiration~1]\ndef expired (idle : Nat) : Bool :=\n  decide (idle \u2265 30 * 60)\n",
+    "tests": "import Session\n\n-- [utest-\u003ereq~session-expiration~1]\n#guard expired 1799 == false\n#guard expired 1800 == true\n",
+    "exit_code": 0
+  },
+  "requirement": "# Privileged session expiration\n\n### Inactivity timeout\n`req~timeout~2`\n\nA privileged session expires at 5 minutes of inactivity; before that it remains active.\n\nNeeds: impl, utest\n",
+  "implementation_before": "-- [impl-\u003ereq~timeout~1]\ndef expired (idle : Nat) : Bool :=\n  decide (idle \u2265 5 * 60)\n",
+  "implementation_after": "-- [impl-\u003ereq~timeout~2]\ndef expired (idle : Nat) : Bool :=\n  decide (idle \u2265 5 * 60)\n",
+  "test_source": "import Session\n\n-- [utest-\u003ereq~timeout~2]\n#guard expired 299 == false\n#guard expired 300 == true\n",
+  "runner_source": "def main : IO Unit := do\n  for args in #[#[\"-o\", \"Session.olean\", \"Session.lean\"], #[\"SessionTests.lean\"]] do\n    let result \u2190 IO.Process.output { cmd := \"/home/kacper/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lean\", args, env := #[(\"LEAN_PATH\", some \".\")] }\n    if result.exitCode != 0 then\n      throw <| IO.userError (result.stdout ++ result.stderr)\n",
+  "scope": {
+    "schema_version": 1,
+    "name": "lean-session-timeout",
+    "inputs": [
+      "spec.md",
+      "Session.lean",
+      "SessionTests.lean",
+      "RunChecks.lean"
+    ],
+    "specification_paths": [
+      "spec.md"
+    ],
+    "test_paths": [
+      "SessionTests.lean",
+      "RunChecks.lean"
+    ],
+    "required_coverage": {
+      "req": [
+        "impl",
+        "utest"
+      ]
+    },
+    "tests": {
+      "command": [
+        "/home/kacper/.elan/toolchains/leanprover--lean4---v4.35.0/bin/lean",
+        "--run",
+        "RunChecks.lean"
+      ],
+      "format": "command",
+      "timeout_seconds": 30
+    }
+  },
+  "runs": {
+    "broken": {
+      "status": "rejected",
+      "exit_code": 1,
+      "test_status": "passed",
+      "review_status": "required",
+      "diagnostics": [
+        "Candidate trace defects; see candidate-trace.log"
+      ],
+      "native_trace": "not ok [ in:  0 /  0   | out:  0 /  2 \u2718 ] impl~timeout-3349338028~0 ()\n\n  [orphaned         ] \u2192 req~timeout~1\n  [outdated         ] \u2192 req~timeout~2\n\nnot ok [ in:  1 /  2 \u2718 | out:  0 /  0   ] req~timeout~2 (-impl, utest)\n\n  A privileged session expires at 5 minutes of inactivity; before that it remains active.\n\n  [outdated coverage] \u2190 impl~timeout-3349338028~0\n  [covered shallow  ] \u2190 utest~timeout-2343685463~0\n\n\nnot ok - 3 total, 2 direct, 0 transitive defects\n",
+      "test_log": ""
+    },
+    "repaired": {
+      "status": "review_required",
+      "exit_code": 4,
+      "test_status": "passed",
+      "review_status": "required",
+      "diagnostics": [],
+      "native_trace": "ok - 3 total\n",
+      "test_log": ""
+    }
+  },
+  "negative_control": {
+    "change": "Incorrectly expect an unexpired 299-second session to be expired.",
+    "exit_code": 1,
+    "output": "uncaught exception: SessionTests.lean:4:0: error: Expression\n  expired 299 == true\ndid not evaluate to `true`\n\n"
+  }
+}

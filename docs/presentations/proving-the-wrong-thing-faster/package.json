@@ -1,0 +1,19 @@
+{
+  "name": "proving-the-wrong-thing-faster",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "slidev build",
+    "dev": "slidev --open",
+    "export": "slidev export --output exports/proving-the-wrong-thing-faster.pdf --with-clicks --wait 500"
+  },
+  "dependencies": {
+    "@slidev/cli": "^53.0.0",
+    "@slidev/theme-default": "latest",
+    "@slidev/theme-seriph": "latest",
+    "vue": "^3.5.33"
+  },
+  "devDependencies": {
+    "playwright-chromium": "1.62.1"
+  }
+}

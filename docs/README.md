@@ -2,6 +2,13 @@
 
 Start with the [README](../README.md) for installation and a first check.
 
+## Overview
+
+- [Proving the Wrong Thing, Faster](presentations/proving-the-wrong-thing-faster/) —
+  a 12-minute presentation on continuous alignment, with a session-expiration
+  example and the Connect → Guide → Validate → Refine workflow.
+  [Read the slides as a PDF](presentations/proving-the-wrong-thing-faster/exports/proving-the-wrong-thing-faster.pdf).
+
 ## Guides
 
 - [Assurance assessment](assurance.md) — optional shared contracts for manual, CI, and factory workflows.

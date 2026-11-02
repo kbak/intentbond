@@ -1,5 +1,7 @@
 include LICENSE CONTRIBUTING.md SECURITY.md
 recursive-include docs *.md
+# The standalone Slidev toolchain is maintained in the repository only.
+prune docs/presentations
 recursive-include examples *.md *.json *.py *.js *.hs *.sh *.ini *.in *.txt *.als .gitignore
 recursive-include tests *.py
 recursive-include scripts *.py
