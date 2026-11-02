@@ -33,6 +33,14 @@ property, give a violating trace and a permitted behavior; classify proposed
 meaning separately from observed behavior and established evidence. Record
 uninspected or uncovered work without claiming exhaustive coverage.
 
+The shared [translation guidance](../intentbond/skills/property-testing/references/formalization.md)
+connects each selected promise's clauses to checks and records what remains
+unchecked. It challenges requirement-violating behavior that still passes and
+permitted behavior that would fail, while keeping ambiguities local. During
+evolution, account for preserved obligations as well as authorized changes in the
+existing change summary. Partial properties remain useful with explicit limits;
+this does not require complete formalization of the application.
+
 For example, an executor can correctly return success when no operations are
 eligible while its caller incorrectly declares a phase complete even though that
 phase contains failed work. The specification must distinguish invocation success

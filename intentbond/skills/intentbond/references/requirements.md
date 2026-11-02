@@ -104,6 +104,11 @@ Formalize concrete, testable promises when useful; brainstorming is not agreemen
 For changed promises, summarize the ID, before → after behavior, reason and
 affected acceptance checks in the existing task or PR. Flag contradictions and
 unknown rationale instead of inventing intent. Reuse this summary in the handoff.
+Account for preserved, changed, added and removed clauses within each affected
+promise; follow them to assertions and assumptions. Use the shared
+[translation guidance](../../property-testing/references/formalization.md) when
+formalizing or reviewing meaning, including examples whose acceptance should
+change or remain unchanged where applicable.
 For authorized mid-task revisions, reconcile affected design, code and assertions
 through their links; preserve work and decisions that still apply.
 

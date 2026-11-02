@@ -91,6 +91,9 @@ For specification or property discovery work, use the
 to examine boundary outcomes, retained assumptions and composition. Keep the
 resulting obligations and gaps in the maintained specification alongside their
 requirements, with links to executable evidence.
+When translating or changing a selected promise, use the shared
+[translation guidance](../property-testing/references/formalization.md) to review
+its clauses and distinguish authorized changes from preserved obligations.
 After a repair, inspect its delta and affected relationships; repeat a full
 review if the repair changes the scope or invalidates earlier conclusions.
 

@@ -55,7 +55,11 @@ contracts, assumptions and remaining obligations use referenced sections. Native
 tests, models, proofs and generated results remain linked artifacts. The
 [discovery pass](../intentbond/skills/property-testing/SKILL.md#discover-and-review-properties)
 examines positive evidence, retained assumptions, nonvacuity and composition while
-preserving proposal status and source/evidence limits. This is authoring guidance,
+preserving proposal status and source/evidence limits. Shared
+[translation guidance](../intentbond/skills/property-testing/references/formalization.md)
+accounts for selected behavioral clauses, missing and extra restrictions, local
+ambiguity, observation semantics and preserved obligations during evolution.
+This is authoring guidance,
 not a new runtime schema or an automated guarantee of property adequacy.
 
 ## Feature map

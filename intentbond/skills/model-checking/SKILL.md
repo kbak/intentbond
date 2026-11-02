@@ -22,6 +22,10 @@ well as the selected functions. Map each modeled state field, transition, and
 observation point to source symbols. Explain what is omitted and whether the
 abstraction restricts behavior or conservatively admits extra behavior. A shared
 property ID or passing model check does not prove that the translation is sound.
+Use the shared [translation guidance](../property-testing/references/formalization.md)
+to account for the selected guarantee's clauses, permitted alternatives and
+disputed cases. Challenge both missing obligations and extra restrictions before
+interpreting solver results.
 
 Keep shared definitions, boundary contracts, assumptions and unresolved composition
 obligations in the maintained specification beside the relevant requirements;

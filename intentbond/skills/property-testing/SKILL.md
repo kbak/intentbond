@@ -6,6 +6,12 @@ description: Discover and review behavioral properties in specifications, then a
 A property is a rule intended to hold across a defined set of inputs or states.
 An executable property test searches for violations using generated inputs.
 
+For authoring or reviewing selected behavioral statements, use the shared
+[translation guidance](references/formalization.md). Preserve each selected
+promise's clauses, challenge missing and extra restrictions, and keep uncertainty
+local. Apply supplied inline guidance directly; no additional lookup is needed
+when the same text is already in context.
+
 When documenting an existing project's requirements with `ib recover`, identify
 existing tests, proposed properties, input domains, and missing checks in the
 feature table or claim notes. Preserve tests, generators, dependencies, and runner
@@ -79,6 +85,8 @@ existing properties. Update assertions, generators, and assumptions, and add
 checks for new requirements or uncovered behavior. Preserve identities for surviving promises;
 revise changed meaning through the existing requirement/review policy. Record
 deferred checks and counterexamples in the same maintained documentation/tests.
+Account for preserved, changed, added and removed clauses in the existing change
+summary, following the translation guidance's evolution check.
 
 For each selected property, explain its scope and assumptions in readable prose
 and link an executable assertion to the same obligation. For critical or ambiguous
