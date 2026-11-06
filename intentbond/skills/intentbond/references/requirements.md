@@ -83,6 +83,15 @@ An optional implementation plan references the affected items and intended check
 Do not use `Covers` for a conversation citation or a plan's task list: those are
 source/context references, not declarations of requirement coverage.
 
+In Lean, put coverage tags in actual line or block comments beside the relevant
+definitions, theorems and assertions, for example `-- [impl->req~session-expiration~1]`.
+The importer supports nested block and documentation comments and retains `.lean`
+paths and physical lines. Strings and escaped identifiers supply no coverage.
+Use `proof` for an actual theorem and `utest` for a test; retain readable Markdown
+explanations of assumptions and paper correspondence. A tag does not run Lean or
+prove that a statement satisfies the requirement; keep kernel checking in the
+project's validation command and inspect the linked declarations during review.
+
 Include the intent and specification documents in the trusted scope's `inputs`
 and `specification_paths` so tracing and review see both. An adopted
 `required_coverage` floor of `"intent": ["req"]` preserves the declared obligation;

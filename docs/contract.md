@@ -201,11 +201,30 @@ The temporary import view preserves original relative paths and physical line
 numbers; snapshots and executed source remain unchanged. Tokenization errors
 stop the import with a file-specific diagnostic. The interpreter running ib
 must understand the selected Python source's lexical syntax.
+Lean files use a comment-only temporary `.js` view for OFT's existing tag parser.
+The view recognizes line comments, nested block comments and documentation
+comments, excluding ordinary/raw strings, character literals and escaped
+identifiers. Standard `s!`, `m!` and `f!` interpolation expressions retain their
+actual comments. Original `.lean` paths and physical line numbers are restored
+in exports. Unterminated lexical boundaries fail with their source location;
+ignored valid Lean coverage tags fail before test execution. Source snapshots
+and executed files remain unchanged. Parser-directed/custom string syntax is
+outside this lexical adapter's contract; no Lean parser or kernel is invoked.
+
+The reuse boundary is deliberate: OFT 4.9.0 supplies tag parsing and tracing but
+does not select `.lean`; its native extension aliases alone would count strings
+as tags. Python's tokenizer cannot read Lean, and requiring a Lean installation
+would add a runtime prerequisite to the checker. The small comment reader follows
+the core lexical forms described by Lean 4.35.0's `Lean.Parser.Basic` and
+`Lean.Parser.StrInterpolation`; it does not copy their implementation or claim to
+parse Lean's extensible grammar. Full Lean validation remains the caller's command.
+
 Graph validation consumes the exported OFT graph. Standalone short coverage
 comments that were not imported produce a location-specific error before tests,
 including on unsupported file extensions. This is an import diagnostic, not a
 check of executable behavior or assertion adequacy. Other languages retain
-OFT's native annotation recognition.
+OFT's native annotation recognition. A Lean `proof` annotation is a trace link,
+not evidence that the corresponding theorem was checked or matches its requirement.
 
 The `.intentbond/recovery/` namespace is reserved for recovery records and
 excluded from OFT import, even under `inputs: ["."]`. Source citations can

@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from .common import RECOVERY_RECORDS, CheckError, digest, run, within, xml_tree
+from .lean_comments import comment_lines as lean_comment_lines
 from .python_comments import comment_lines
 
 OFT_VERSION = "4.9.0"
@@ -17,6 +18,10 @@ OFT_URL = f"https://github.com/itsallcode/openfasttrace/releases/download/{OFT_V
 # OFT 4.9.0's tag importer accepts ts/js but omits their JSX variants.
 # Reuse that importer on byte-identical temporary aliases, then restore origins.
 TAG_ALIASES = {".tsx": ".ts", ".jsx": ".js"}
+LEAN_TAG = re.compile(
+    r"\[([A-Za-z]+)(?:~[A-Za-z0-9][A-Za-z0-9_.-]*~[0-9]+)?->"
+    r"[A-Za-z]+~[A-Za-z0-9][A-Za-z0-9_.-]*~[0-9]+\]"
+)
 
 
 def import_diagnostics(log):
@@ -29,6 +34,7 @@ def import_diagnostics(log):
 
 
 # [impl->req~ib-python-annotations~1]
+# [impl->req~ib-lean-annotations~1]
 def annotation_diagnostics(snap, inputs, items):
     """Detect ignored standalone short tags, not program-language semantics."""
     imported = {(i["path"], i["line"], i["type"]) for i in items}
@@ -44,6 +50,13 @@ def annotation_diagnostics(snap, inputs, items):
             or not within(name, inputs)
             or within(name, [RECOVERY_RECORDS])
         ):
+            continue
+        if Path(name).suffix.lower() == ".lean":
+            view, _ = lean_comment_lines((snap.root / name).read_bytes(), name)
+            for line, text in enumerate(view.decode().split("\n"), 1):
+                for match in LEAN_TAG.finditer(text):
+                    if (name, line, match[1]) not in imported:
+                        missing.append(f"{name}:{line}")
             continue
         markdown = Path(name).suffix.lower() in {".md", ".markdown"}
         python_comments = None
@@ -207,6 +220,7 @@ def import_view(snap, inputs):
 
 
 # [impl->req~ib-trace-exclusions~1]
+# [impl->req~ib-lean-annotations~1]
 def export_items(snap, inputs, jar, java, out, label, exclude=(), *, check_authoring=True):
     """Import artifacts through OFT without requiring an already complete graph."""
     for path in inputs:
@@ -247,7 +261,7 @@ def export_items(snap, inputs, jar, java, out, label, exclude=(), *, check_autho
         e["path"]
         for e in snap.manifest
         if e["mode"] != "120000"
-        and Path(e["path"]).suffix in TAG_ALIASES
+        and (Path(e["path"]).suffix in TAG_ALIASES or Path(e["path"]).suffix.lower() == ".lean")
         and within(e["path"], selected_inputs)
         and not within(e["path"], [RECOVERY_RECORDS])
     ]
@@ -257,10 +271,14 @@ def export_items(snap, inputs, jar, java, out, label, exclude=(), *, check_autho
             root = Path(temporary)
             originals = {}
             for name in aliases:
-                alias = name + TAG_ALIASES[Path(name).suffix]
+                lean = Path(name).suffix.lower() == ".lean"
+                alias = name + (".js" if lean else TAG_ALIASES[Path(name).suffix])
                 target = root / alias
                 target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes((snap.root / name).read_bytes())
+                content = (snap.root / name).read_bytes()
+                if lean:
+                    content, _ = lean_comment_lines(content, name)
+                target.write_bytes(content)
                 originals[alias] = name
             extra = out / f"{label}-tags.xml"
             imported = run(
