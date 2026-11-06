@@ -71,7 +71,7 @@ also identifies deferred areas and evidence limits. All IDs use
 | Capability | Requirements | Boundary or review focus |
 | --- | --- | --- |
 | Baseline and policy | policy-source, baseline-selection | External-policy trust; further ambiguous-merge-base and schema cases. |
-| Tracing and revisions | coverage, revision-policy, empty-scope, python-annotations | Real Python comments only; other languages keep OFT recognition. |
+| Tracing and revisions | coverage, revision-policy, empty-scope, python-annotations, lean-annotations | Python and Lean comment views preserve source locations; other languages keep OFT recognition. |
 | Source capture | source-identity, safe-symlinks, source-stability | Preserve exclusions and the change-then-restore observation limit. |
 | Test results | junit-completion, fresh-reports, report-merge, command-results, pytest-subtests, check-progress | Parent/subtest counts are separate; pin and plugin compatibility remain explicit. |
 | Individual execution | execution-associations, required-execution | The scope does not require individual execution metadata. |
@@ -785,7 +785,44 @@ Implementation: [intentbond/python_comments.py](../intentbond/python_comments.py
 
 Existing assertions: [test_strings_are_absent_and_comment_locations_are_preserved](../tests/test_python_annotations.py); [test_encodings_and_physical_newlines](../tests/test_python_annotations.py); [test_unterminated_string_cannot_hide_annotations](../tests/test_python_annotations.py); [test_real_oft_ignores_examples_retains_comments_and_source_bytes](../tests/test_python_annotations.py); [test_comment_link_to_missing_requirement_still_fails](../tests/test_python_annotations.py).
 
-Evidence limit: The interpreter running the checker must understand the source lexical syntax. Other languages retain native OFT recognition; no general multi-language parser guarantee is inferred.
+Evidence limit: The interpreter running the checker must understand the Python source lexical syntax. Lean has its separate contract below; other languages retain native OFT recognition.
+
+### Import Lean annotations from comments with original locations
+`req~ib-lean-annotations~1`
+
+For selected UTF-8 Lean files, import OFT tags from `--` line comments and nested
+`/- ... -/` block comments, including `/--` and `/-!` documentation comments.
+Ordinary and raw strings, character literals and escaped identifiers must not
+contribute tags. Recognize the standard `s!`, `m!` and `f!` interpolation forms,
+including nested expressions and their actual comments. Preserve original relative
+paths and physical line numbers in exported artifacts without changing captured
+or executed source. Reject unterminated lexical boundaries with a source location.
+Valid coverage tags omitted by the importer must produce a diagnostic before tests.
+Missing targets and stale revisions remain errors under OFT's existing graph rules.
+Trace exclusions and symlink handling apply to the Lean import view too.
+
+Covers:
+- `intent~ib-preserve-purpose~1`
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest
+
+Documentation: [command and evidence contract](contract.md).
+
+Implementation: [Lean comment view](../intentbond/lean_comments.py),
+[OFT adapter](../intentbond/oft.py).
+
+Existing assertions: [Lean annotation tests](../tests/test_lean_annotations.py)
+exercise real OFT imports, missing/stale links, removal of sole coverage, ignored
+tags, exclusions, source preservation, lexical failures and line locations.
+A deterministic Hypothesis search varies nesting depth 1–20, line padding 0–12
+and raw-string delimiters 0–8 over at most 50 examples; this is bounded testing.
+
+Evidence limit: This is a lexical adapter for these core forms, not an extensible
+Lean parser or a theorem checker. Parser-directed/custom string syntax is outside
+this contract. A `proof` tag records a declared relationship; the caller still
+builds and kernel-checks Lean and reviews the theorem statement. Recovery's
+annotation-only edit authorization is unchanged.
 
 ### Retain complete subtest cases with the pinned opt-in producer
 `req~ib-pytest-subtests~1`
