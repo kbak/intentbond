@@ -1,6 +1,8 @@
 """Derived change impact from OFT's graph and conservative source-line classification."""
 
 import re
+import shlex
+from collections import Counter
 
 from . import boundaries
 from .common import CheckError, read_json, within
@@ -204,15 +206,71 @@ def impact(evidence_path, jar, java="java"):
     return report
 
 
-def render_impact(report):
+# [impl->req~ib-impact-report~1]
+def compact_observations(report):
+    inspection = report["inspection"]
+    files = inspection["changed_files"]
+    lines = [f"Changed files: {len(files)}"]
+    for status, count in sorted(Counter(item["annotation_status"] for item in files).items()):
+        lines.append(f"  {status}: {count}")
+    for label, field in (
+        ("Native coverage gaps", "coverage_gaps"),
+        ("Required execution gaps", "required_execution_gaps"),
+    ):
+        items = inspection[field]
+        lines.append(f"{label}: {len(items)}")
+        for item in items[:5]:
+            if field == "coverage_gaps":
+                coverage = item["coverage"]
+                lines.append(
+                    f"  {item['id']} ({item['path']}:{item['line']}): "
+                    f"deep={coverage['deep']}, uncovered types="
+                    f"{', '.join(coverage['uncovered_types']) or '(none)'}; "
+                    f"item status={item['oft_status']}"
+                )
+            else:
+                lines.append(f"  {item['key']}: {item['status']}")
+        if len(items) > 5:
+            lines.append(f"  {len(items) - 5} more; see full output")
+    execution = Counter(
+        item["linked_test_execution"] for item in inspection["artifacts"] if item["linked_tests"]
+    )
+    lines.append(
+        "Linked execution observations: "
+        + (
+            ", ".join(f"{status}={count}" for status, count in sorted(execution.items()))
+            or "none recorded"
+        )
+    )
+    lines.extend(
+        [
+            f"Immediate-link hubs: {len(inspection['hubs'])}",
+            "Counts describe recorded observations, not completeness or correctness. "
+            "No imported artifacts does not establish missing requirements; hubs are not errors.",
+            "Declaration, source and graph details omitted. Full output:",
+            f"  ib impact --evidence {shlex.quote(report['evidence'])}",
+            "Add --format json for the complete structured report.",
+        ]
+    )
+    return lines
+
+
+def render_impact(report, compact=False):
     lines = ["Change impact for saved evidence: " + report["evidence"]]
     lines += [
         name.replace("_", " ") + ": " + str(value) for name, value in report["counts"].items()
     ]
-    lines += [c["key"] + ": " + c["classification"] for c in report["declarations"]]
-    lines += [c["path"] + ": " + c["classification"] for c in (report["source_changes"] or [])]
+    if compact:
+        lines += compact_observations(report)
+        lines += [
+            f"OFT trace: base={report['trace']['base']}; candidate={report['trace']['candidate']}",
+            "Semantic review: " + (report.get("review") or {}).get("status", "not_recorded"),
+        ]
+    else:
+        lines += [c["key"] + ": " + c["classification"] for c in report["declarations"]]
+        lines += [c["path"] + ": " + c["classification"] for c in (report["source_changes"] or [])]
+        lines += render_inspection(report["inspection"])
     lines += [
-        *render_inspection(report["inspection"]),
         "Recorded check: " + report["recorded_check_status"],
         "Source-line classification: " + report["source_classification_status"],
         "Human review effort: not measured",

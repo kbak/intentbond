@@ -15,12 +15,9 @@ Native tests, solver models, proof sources and generated evidence remain separat
 linked artifacts. This does not require another document hierarchy, a property
 JSON schema, or new CLI fields; tool-managed recovery records remain required.
 
-Use the shared [concepts and result meanings](semantics.md), included alongside this guidance
-in agent contexts. Keep coverage, origin, approval and execution evidence distinct.
-
-Normal checks read root scope.json from the adopted baseline; omit --scope to
-use it. Use external scope only when supplied by the caller. Candidate scope
-edits cannot authorize themselves; proposed starting requirements and scope need review before use.
+For unfamiliar result or provenance terms, consult the relevant section of
+[concepts and result meanings](semantics.md). Baseline and trusted-scope selection
+follow the [main workflow](../SKILL.md#task-context).
 
 ## Capture intent from a conversation
 
@@ -102,22 +99,14 @@ is needed, and existing document names and OFT type conventions remain valid.
 
 ## Author requirements and design
 
-Read the trusted scope and relevant repository guidance. Use existing headings,
-capability tables or targeted searches to locate affected requirements, then read
-their full promises and acceptance criteria and follow links to code and tests.
-Reuse supplied context; retrieve more only to resolve a gap. Flag uncertainty:
-trace links support consistency assessment but do not prove semantic agreement.
-
 Distinguish exploration, proposed and agreed requirements, and open questions.
 Formalize concrete, testable promises when useful; brainstorming is not agreement.
 For changed promises, summarize the ID, before → after behavior, reason and
 affected acceptance checks in the existing task or PR. Flag contradictions and
 unknown rationale instead of inventing intent. Reuse this summary in the handoff.
-Account for preserved, changed, added and removed clauses within each affected
-promise; follow them to assertions and assumptions. Use the shared
-[translation guidance](../../property-testing/references/formalization.md) when
-formalizing or reviewing meaning, including examples whose acceptance should
-change or remain unchanged where applicable.
+Use the shared [translation guidance](../../property-testing/references/formalization.md)
+to review selected clauses, assumptions and acceptance changes when formalizing
+or changing meaning.
 For authorized mid-task revisions, reconcile affected design, code and assertions
 through their links; preserve work and decisions that still apply.
 
@@ -134,20 +123,15 @@ For critical or ambiguous rules, optionally add a logical statement beside the
 requirement's prose and ID. Define its domain (variables, types, units), assumptions,
 and guarantee, including quantifiers and relevant state or time boundaries. Use
 preconditions, postconditions, invariants, or temporal properties as appropriate;
-do not require every requirement to have a formula. Follow the
-[property-testing guidance](../../property-testing/SKILL.md). Keep assumptions and
-test-search limits distinct from promised behavior. Conflicting prose and logic
-need a review decision, and a stronger precondition or narrower domain can weaken
-the promise. A textual formula is not proof or evidence that a test ran.
+not every requirement needs a formula. A textual formula is not execution or proof
+evidence. Keep test-search limits distinct from promised behavior; translation
+review handles conflicts and changes to assumptions or guarantees.
 
 When establishing or substantively reviewing these rules, use the
 [property discovery and review pass](../../property-testing/SKILL.md#discover-and-review-properties).
-Derive the intended guarantee independently of implementation choices, examine
-boundary outcomes and retained assumptions, and check whether component properties
-can all hold while the intended outcome fails. Keep proposed definitions and
-uninspected or uncovered behavior visible in the specification. Approval status
-and evidence status are separate: distinguish a proposed check, an executed search
-and a proved statement with its assumptions and source correspondence.
+That pass covers independent guarantees, boundary evidence, retained assumptions,
+nonvacuity and composition. Implement selected checks using
+[check implementation](../../property-testing/SKILL.md#implement-and-maintain-checks).
 
 Carry agreed text, IDs/revisions, acceptance criteria, documentation paths and
 authorized promise changes into the existing handoff. Keep unapproved proposals

@@ -28,6 +28,7 @@ automatic revision updates. See [requirement granularity](requirement-granularit
 ## Inspect gaps and related work
 
 ```sh
+ib impact --compact --evidence /tmp/change-check/evidence.json
 ib impact --evidence /tmp/change-check/evidence.json
 ib impact --evidence /tmp/change-check/evidence.json --format json
 ib explain 'req~retry-cap~2' --evidence /tmp/change-check/evidence.json
@@ -36,6 +37,11 @@ ib explain 'req~retry-cap~2' --evidence /tmp/change-check/evidence.json
 Impact's additive `inspection` object retains baseline and candidate artifacts,
 changed-file artifact membership, coverage gaps, required execution gaps, and
 immediate-link hubs. Text shows at most ten hubs; JSON retains all of them.
+Use `--compact` for counts, recorded check/trace/review states and at most five
+examples per coverage/required execution gap category. It states how much detail
+was omitted and prints a command for the full view. Linked execution outcomes and
+changed-file tracing categories are summarized. `--compact --format json` still
+returns the complete report.
 Explain includes each selected artifact's exact resolving incoming/outgoing links
 and degree. Neither command reruns project tests or requires a checkout; both
 reuse pinned OFT to report the retained graph.

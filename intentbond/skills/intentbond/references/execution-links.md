@@ -8,6 +8,15 @@ This optional configuration uses JUnit testcase properties and needs no addition
 ib runtime dependency. The project supplies its test runner and emits the IDs.
 The fields and evidence format below are provisional.
 
+When the trusted scope enables this profile, review artifact declarations,
+runner mappings or JUnit `oft_id` properties, and recorded outcomes together.
+Inspect `tests.format` before selecting a producer. Maintain `required_artifacts`
+for tests whose passing execution is mandatory; not every test needs a link.
+Preserve missing, skipped and ambiguous observations. Propose missing producer or
+configuration work separately from unsupported capability; policy changes still
+require the caller's authority. A linked passing result does not establish that
+its assertion satisfies the requirement.
+
 For stdlib unittest, use the packaged producer without changing test bodies:
 
 ```sh

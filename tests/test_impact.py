@@ -1,13 +1,17 @@
 """An equivalent bounded policy change preserves unrelated promises and exact-revision checks."""
 
+import copy
+import json
+import shlex
 import shutil
+import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 from test_workflow import WorkflowFixture
 
 from intentbond.common import CheckError, read_json
-from intentbond.impact import impact
+from intentbond.impact import impact, render_impact
 
 
 class ImpactTests(WorkflowFixture):
@@ -104,8 +108,6 @@ class ImpactTests(WorkflowFixture):
                 cwd=self.root,
             )
         self.assertEqual(code, 0, error)
-        import json
-
         report = json.loads(text)
         self.assertEqual(report["counts"], self.report()["counts"])
         self.assertEqual((self.out / "evidence.json").read_bytes(), original)
@@ -114,6 +116,27 @@ class ImpactTests(WorkflowFixture):
         )
         self.assertEqual(code, 0, error)
         self.assertIn("Human review effort: not measured", text)
+        code, compact, error = self.run_cli(
+            "impact", "--compact", "--evidence", str(self.out / "evidence.json"), cwd=self.root
+        )
+        # [utest->req~ib-impact-report~1]
+        self.assertEqual(code, 0, error)
+        self.assertIn("Recorded check: review_required", compact)
+        self.assertIn("Semantic review: required", compact)
+        self.assertIn("normative text changed: 1", compact)
+        self.assertNotIn("req~retry-cap: normative_text_changed", compact)
+        code, structured, error = self.run_cli(
+            "impact",
+            "--compact",
+            "--format",
+            "json",
+            "--evidence",
+            str(self.out / "evidence.json"),
+            cwd=self.root,
+        )
+        self.assertEqual(code, 0, error)
+        self.assertEqual(json.loads(structured), report)
+        self.assertEqual((self.out / "evidence.json").read_bytes(), original)
 
     def test_changed_export_or_report_is_rejected(self):
         self.revised()
@@ -135,3 +158,82 @@ class ImpactTests(WorkflowFixture):
             next(c["classification"] for c in source if c["path"] == "tests/test_retry.py"),
             "assertion_or_test_source_changed",
         )
+
+
+class CompactImpactTests(unittest.TestCase):
+    def report(self):
+        return {
+            "evidence": "/tmp/reviewer's evidence/evidence.json",
+            "counts": {"changed_declarations_excluding_location": 1000},
+            "declarations": [
+                {"key": f"req~ordinary-change-{n}", "classification": "normative_text_changed"}
+                for n in range(1000)
+            ],
+            "source_changes": [],
+            "inspection": {
+                "changed_files": [
+                    {"path": f"src/file-{n}.py", "annotation_status": "no_imported_artifacts"}
+                    for n in range(1000)
+                ],
+                "coverage_gaps": [
+                    {
+                        "id": f"req~draft-{n}~1",
+                        "path": "spec.md",
+                        "line": n + 1,
+                        "coverage": {"deep": "UNCOVERED", "uncovered_types": []},
+                        "oft_status": "DRAFT",
+                    }
+                    for n in range(7)
+                ],
+                "required_execution_gaps": [
+                    {"key": "utest~boundary", "status": "skipped"},
+                    {"key": "utest~missing", "status": "not_established"},
+                ],
+                "artifacts": [{"linked_tests": ["boundary"], "linked_test_execution": "skipped"}],
+                "hubs": [{}] * 1000,
+            },
+            "trace": {"base": "passed", "candidate": "failed"},
+            "recorded_check_status": "rejected",
+            "review": {"status": "required"},
+            "source_classification_status": "recorded_at_check",
+            "limitations": ["Recorded observations do not prove correctness."],
+        }
+
+    def test_large_change_keeps_gaps_visible_and_reports_omissions(self):
+        # [utest->req~ib-impact-report~1]
+        report = self.report()
+        before = copy.deepcopy(report)
+        text = render_impact(report, compact=True)
+        self.assertIn("changed declarations excluding location: 1000", text)
+        self.assertIn("no_imported_artifacts: 1000", text)
+        self.assertIn("Native coverage gaps: 7", text)
+        self.assertIn("deep=UNCOVERED, uncovered types=(none); item status=DRAFT", text)
+        self.assertIn("2 more; see full output", text)
+        self.assertNotIn("req~draft-5~1", text)
+        self.assertIn("Required execution gaps: 2", text)
+        self.assertIn("utest~boundary: skipped", text)
+        self.assertIn("utest~missing: not_established", text)
+        self.assertIn("Linked execution observations: skipped=1", text)
+        self.assertIn("OFT trace: base=passed; candidate=failed", text)
+        self.assertIn("Recorded check: rejected", text)
+        self.assertIn("Semantic review: required", text)
+        self.assertIn(report["limitations"][0], text)
+        self.assertLess(len(text.splitlines()), 40)
+        command = next(line.strip() for line in text.splitlines() if line.startswith("  ib impact"))
+        self.assertEqual(shlex.split(command), ["ib", "impact", "--evidence", report["evidence"]])
+        self.assertEqual(report, before)
+
+    def test_legacy_missing_metadata_and_no_observations_remain_explicit(self):
+        # [utest->req~ib-impact-report~1]
+        report = self.report()
+        report["inspection"] = {name: [] for name in report["inspection"]}
+        report["source_changes"] = None
+        report["source_classification_status"] = "not_recorded_in_legacy_bundle"
+        report["review"] = None
+        text = render_impact(report, compact=True)
+        self.assertIn("Changed files: 0", text)
+        self.assertIn("Native coverage gaps: 0", text)
+        self.assertIn("Required execution gaps: 0", text)
+        self.assertIn("Linked execution observations: none recorded", text)
+        self.assertIn("Source-line classification: not_recorded_in_legacy_bundle", text)
+        self.assertIn("Semantic review: not_recorded", text)

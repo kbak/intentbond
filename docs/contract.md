@@ -417,6 +417,14 @@ resolved immediate-link hubs. `ib explain` additionally includes `degree` for ea
 selected artifact. These are additive report fields; check evidence, scope defaults
 and exit meanings are unchanged.
 
+`ib impact --compact` changes only text presentation: counts, recorded statuses,
+source-classification availability and limitations remain visible, with up to five
+examples per native coverage/required execution gap category. Omission counts and
+a full-output command make remaining details accessible. Changed-file tracing
+categories and linked execution outcomes are summarized; hubs are counted.
+The default text remains detailed. JSON remains complete even with `--compact`;
+neither view reruns project tests, matches current source or clears review.
+
 `ib review start --repo ROOT --evidence FILE --out NEW_DIRECTORY` freezes a local
 worklist. `ib review next|status|record --worklist DIRECTORY` resumes against the
 same evidence, source and trusted scope. Record requires an exact task ID and

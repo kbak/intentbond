@@ -107,6 +107,11 @@ def parser():
     )
     impacting.add_argument("--evidence", type=Path, required=True)
     impacting.add_argument("--format", choices=("text", "json"), default="text")
+    impacting.add_argument(
+        "--compact",
+        action="store_true",
+        help="Show counts and bounded gap examples in text; JSON remains complete",
+    )
     impacting.add_argument("--oft-jar", type=Path, default=default_jar())
     impacting.add_argument("--java", default="java")
     explaining = commands.add_parser("explain", help="Explain OFT items using saved check evidence")
@@ -287,7 +292,11 @@ def main(argv=None):
             return assessment_codes[result["status"]]
         if args.action == "impact":
             result = impact(args.evidence, args.oft_jar, args.java)
-            print(json.dumps(result, indent=2) if args.format == "json" else render_impact(result))
+            print(
+                json.dumps(result, indent=2)
+                if args.format == "json"
+                else render_impact(result, compact=args.compact)
+            )
             return 0
         if args.action == "review":
             if args.review_action == "start":

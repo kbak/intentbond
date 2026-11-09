@@ -543,6 +543,13 @@ Existing assertions: [test_cli_uses_relocated_bundle_without_repo_or_test_execut
 
 Impact compares retained declarations and exact edges, distinguishing normative text changes from link/revision-only changes. Recorded source classifications distinguish recognized annotation-only edits from implementation or test-body edits. These counts do not establish assertion adequacy or reduced human review effort.
 
+Optional `--compact` text retains change counts, recorded check/trace/review states,
+source-classification availability and evidence limits. It summarizes changed-file
+tracing categories, linked execution observations and hubs, and reports total native
+coverage/required execution gaps with at most five examples of each. Omitted details
+must be explicit with a command for full inspection. Default text and JSON retain
+their complete existing detail; `--compact --format json` does not filter the report.
+
 Covers:
 - `intent~ib-understand-change~1`
 

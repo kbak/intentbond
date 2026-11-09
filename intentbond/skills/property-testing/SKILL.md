@@ -7,23 +7,19 @@ A property is a rule intended to hold across a defined set of inputs or states.
 An executable property test searches for violations using generated inputs.
 
 For authoring or reviewing selected behavioral statements, use the shared
-[translation guidance](references/formalization.md). Preserve each selected
-promise's clauses, challenge missing and extra restrictions, and keep uncertainty
-local. Apply supplied inline guidance directly; no additional lookup is needed
-when the same text is already in context.
+[translation guidance](references/formalization.md). It owns clause preservation,
+omission/overrestriction checks and evolution review. Use the section needed for
+the task; supplied inline guidance needs no second lookup.
 
 When documenting an existing project's requirements with `ib recover`, identify
 existing tests, proposed properties, input domains, and missing checks in the
-feature table or claim notes. Preserve tests, generators, dependencies, and runner
-configuration during that documentation step. Keep authored property descriptions
-beside their requirements in `spec.md` or the project's established equivalent;
-keep outcomes and rationale in `intent.md`. Shared definitions, boundary contracts,
-assumptions and remaining gaps can be sections of that same specification. Link
-native tests, models, proofs and generated evidence from there. Do not introduce
-a parallel verification document hierarchy or property JSON catalog by default.
-Add or change tests once the starting requirements are reviewed and the task
-authorizes test work. Passing documentation
-checks do not approve inferred intent.
+feature table or claim notes. Preserve tests, generators, dependencies and runner
+configuration during that documentation step. Add or change tests once the starting
+requirements are reviewed and the task authorizes test work; passing documentation
+checks do not approve inferred intent. Keep authored analysis beside the maintained
+requirements, using the existing [document roles](../intentbond/references/requirements.md).
+Native tests, models, proofs and results remain linked artifacts, not a parallel
+authored specification or property catalog.
 
 ## Discover and review properties
 
@@ -82,29 +78,20 @@ a useful refinement, not a duplicate requirement. Ordinary example tests remain 
 To improve the test suite, start with missing checks identified in the requirements
 or review. When behavior changes, follow the affected requirements and code to
 existing properties. Update assertions, generators, and assumptions, and add
-checks for new requirements or uncovered behavior. Preserve identities for surviving promises;
-revise changed meaning through the existing requirement/review policy. Record
-deferred checks and counterexamples in the same maintained documentation/tests.
-Account for preserved, changed, added and removed clauses in the existing change
-summary, following the translation guidance's evolution check.
+checks for new requirements or uncovered behavior. Follow the translation guidance's
+[evolution check](references/formalization.md#preserve-meaning-through-evolution);
+preserve identities for surviving promises and retain deferred checks/counterexamples
+in the maintained documentation/tests.
 
-For each selected property, explain its scope and assumptions in readable prose
-and link an executable assertion to the same obligation. For critical or ambiguous
-rules, optionally add **Domain**, **Assumptions**, and **Logical statement** beside
-the prose and existing ID. These are Markdown conventions, not machine-checked
-fields. Define variables, types, units, and quantifiers. Identify a precondition,
-postcondition, state invariant, or temporal property; define old/new state,
-observation points, and time or concurrency assumptions when relevant. Reuse clear
-existing statements and create a separate linked property only when it needs its
-own identity. Preserve the meaning of the requirement; flag conflicts between
-prose and logic instead of silently choosing one.
-
-Keep caller/environment assumptions separate from guarantees. Do not assume the
-behavior that must be checked, exclude required invalid-input cases, or turn test
-generator ranges into domain restrictions. Stronger preconditions, narrower domains,
-and weaker guarantees are requirement changes subject to normal revision and review.
-Derive checks from the complete statement; boundary or metamorphic checks may cover
-only part of it. A formula alone supplies no execution or proof evidence.
+Link an executable assertion to the selected obligation. Explain its scope and
+assumptions in the maintained prose, following
+[requirement authoring](../intentbond/references/requirements.md#author-requirements-and-design)
+when a statement needs clarification. Optional **Domain**, **Assumptions** and
+**Logical statement** labels are Markdown conventions, not machine-checked fields.
+Keep caller/environment assumptions separate from guarantees and generator limits
+separate from promised domains. Stronger preconditions, narrower domains and weaker
+guarantees are requirement changes subject to normal review. Derive checks from
+the complete statement; translation review identifies what remains unchecked.
 
 Exercise the actual implementation. Specify generators for relevant boundaries,
 invalid inputs, and operation sequences; generated valid inputs must not silently exclude promised
@@ -113,11 +100,15 @@ Check that the premises admit cases and the assertion constrains the implementat
 including the caller obligations identified above. An independently correct helper
 does not establish that every path invokes it or preserves its result.
 
-Use the existing runner and one appropriate library. Read only the relevant guide:
+Use the existing runner and library. When framework-specific guidance is needed,
+read only the applicable guide:
 [Hypothesis](references/python.md), [fast-check](references/typescript.md),
 [QuickCheck](references/haskell.md), or [Hegel](references/hegel.md).
 For Daml contracts, read the [Daml guide](references/daml.md); Haskell's
 QuickCheck is not a drop-in Daml dependency.
+The assertion framework determines the guide, not a wrapper script's language.
+Existing example tests or native proof checks do not require introducing a
+property-testing library.
 If an adapter supplied this text without the references, read the matching installed
 file with `importlib.resources.files("intentbond")` under
 `skills/property-testing/references/`. No new agent service is needed.

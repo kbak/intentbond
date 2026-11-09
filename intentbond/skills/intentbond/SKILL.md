@@ -3,184 +3,109 @@ name: intentbond
 description: Capture intent, draft specifications, or implement and review a task with OpenFastTrace, using the supplied scope and baseline to follow linked documentation, code, tests, and evidence.
 ---
 
-Maintain intent, specification requirements, code, tests, and their links
-in each commit prepared for the task.
-Compare changes with the agreed starting commit and retain check results for review.
-
-Use the [concepts and result meanings](references/semantics.md) from the matching tool
-package or the copy included in context. Apply its distinctions in the existing
-task summary; no separate report is required. For user conversations, design
-discussions, or changes to intent and specifications, use
-[authoring guidance](references/requirements.md).
-Discussion does not authorize implementation.
+Maintain affected intent, requirements, code, tests and their links together.
+Compare the change with its starting baseline and retain evidence for review.
+Links establish declared coverage; tests establish their recorded outcomes;
+neither grants approval or proves that the user's intent is satisfied. Consult
+[result meanings](references/semantics.md) when a distinction needs clarification.
 
 ## Task context
 
-Reuse supplied instructions, requirement context, and matching local/package/factory
-tooling. Read missing context as needed; do not reread supplied text merely to
-follow this workflow. Honor pinned revisions and preserve local changes.
-If tooling is missing, follow the [standalone setup](references/setup.md).
+Reuse supplied context and matching local/package/factory tooling. Preserve local
+changes and pinned revisions. Read only references needed for the current task;
+supplied inline guidance needs no second lookup. Discussion and drafting do not
+authorize implementation. Continue authorized work, asking only about unresolved
+decisions that block it.
 
-Retain the target repository's absolute path. Use the supplied scope and baseline;
-in standalone use, the CLI defaults to the repository's adopted scope.json and
-merge base with the locally known default branch (HEAD on that branch or detached
-HEAD). Use an explicit baseline for work based on another feature/release branch.
-Resolve and retain the starting baseline before editing or committing. Reuse it
-for checking the intended change and verifying its committed result; resolving
-the default again after a commit on the default branch would select the new HEAD
-and omit the change from the comparison.
-Ask only about unresolved task or scope decisions. If the project lacks starting
-requirements and links, use [the existing-project skill](../recover-baseline/SKILL.md)
-to document them. Continue implementation when already authorized, retaining the
-recovery evidence and reviewing the combined change through the existing workflow.
-Ordinary development does not repeat that initial work. Candidate scope edits
-cannot authorize their own policy.
+Retain the repository's absolute path, trusted scope and starting baseline commit
+before editing. Use supplied inputs. Otherwise the CLI uses adopted scope.json
+and the merge base with the locally known default branch (HEAD on that branch or
+detached HEAD). Work based on another feature/release branch needs an explicit
+baseline. Reuse the starting commit for checking and verification; resolving the
+default after committing on the default branch would omit the change. Candidate
+scope edits and approval files cannot authorize themselves.
 
-Locate affected promises through existing headings, capability tables or targeted
-searches; read their full text and follow links back to intent and through design,
-code and assertions. Preserve relevant conversation decisions and unresolved
-questions when maintaining intent; a proposal is not an accepted promise.
-When saved evidence is available, assemble missing context for known IDs together:
-
-```sh
-ib explain 'req~first~1' 'req~second~1' --compact --evidence /path/to/check/evidence.json
-```
-
-This shares metadata and linked locations without rerunning tests. Use
-`--format json` for structured IDs or `--snapshot base` for historical items. Saved evidence
-does not establish current-source agreement or complete impact coverage. Follow
-indirect links as needed; query only to resolve gaps, not as a required final step.
-For a nondefault OFT installation, keep `INTENTBOND_OFT_JAR` set or pass `--oft-jar`
-to `explain` as well as `check`; saved evidence does not configure the local JAR path.
+Locate affected promises through headings, capability tables or targeted search.
+Read their full meaning and follow links back to intent and through design, code
+and assertions. When authoring intent or requirements, use the applicable section
+of [authoring guidance](references/requirements.md). If starting requirements and
+links are missing, use [baseline recovery](../recover-baseline/SKILL.md), then
+continue authorized implementation and review the combined change. Work on an
+adopted baseline does not repeat recovery.
 
 ## Implementation and review
 
-Keep IDs beside the relevant behavior and assertions; follow the scope's coverage
-and revision policy. Do not weaken promises or remove obligations to hide failures.
-Keep prose and test edits visible. Authorized edits can proceed without another
-confirmation; conflicts with approved requirements need a decision through the
-caller's question or review process. Candidate approval files grant no authority.
+Maintain affected assertions, generators, assumptions and documentation with the
+change. Keep IDs beside relevant behavior and assertions, following trusted
+coverage and revision policy. Existing links may suffice; unchanged promises need
+no wording or ID edits, and files need no arbitrary annotations. Do not weaken
+promises or remove obligations to hide failures. Conflicts with approved meaning
+need a decision through the caller's existing process.
 
-Follow affected obligations to existing properties and maintain their assertions,
-generators and assumptions with the change. For selected new checks or properties
-identified while documenting the project, use the matching packaged
-[property-testing skill](../property-testing/SKILL.md), or its supplied inline
-copy. It strengthens selected obligations with ordinary executable tests and
-uses the existing review/evidence flow; it does not require property tests for
-every change. Load only the applicable framework guide.
+Use additional guidance for the work it covers:
 
-Before each commit or final handoff, review the full intended Git diff, including
-new files. Start from each substantive behavior change and its boundary cases,
-then follow the relevant requirements, implementation and test assertions; do not
-start and stop with the links that already exist. Include related unchanged
-promises and keep supporting documentation consistent. Existing relationships can
-suffice; unchanged promises need no wording or ID edits, and individual files or
-functions need no arbitrary annotations. Check whether the implementation satisfies
-the promise and the assertions verify the affected behavior. Code-only changes
-need this assessment too. Use focused source reads around the links.
-For substantial semantic changes, ask whether the specification itself admits a
-case the intended system forbids, or excludes a required successful case. Look
-for a small counterexample using independent source examples, a reference
-implementation or another suitable oracle; account for its assumptions and known
-departures. Proofs and tests derived from the same specification can share an
-omission. Preserve useful counterexamples as regressions and resolve conflicting
-meanings through the existing review. This is a focused review prompt, not a
-mandatory new tool or validation pass; see the [example](references/semantics.md#independent-semantic-checks).
-For specification or property discovery work, use the
-[property review guidance](../property-testing/SKILL.md#discover-and-review-properties)
-to examine boundary outcomes, retained assumptions and composition. Keep the
-resulting obligations and gaps in the maintained specification alongside their
-requirements, with links to executable evidence.
-When translating or changing a selected promise, use the shared
-[translation guidance](../property-testing/references/formalization.md) to review
-its clauses and distinguish authorized changes from preserved obligations.
-After a repair, inspect its delta and affected relationships; repeat a full
-review if the repair changes the scope or invalidates earlier conclusions.
+- **Discover or substantively review properties:** use the
+  [discovery pass](../property-testing/SKILL.md#discover-and-review-properties).
+- **Translate or change a promise:** use shared
+  [translation guidance](../property-testing/references/formalization.md).
+- **Add or strengthen executable properties:** use
+  [check implementation](../property-testing/SKILL.md#implement-and-maintain-checks)
+  and only the applicable framework guide. Property tests are not required for
+  every change.
 
-In the existing task summary, state what you checked, reuse or update the handoff's
-requirement-change summary, and flag contradictions, gaps and uncertainty with
-IDs and file references. This is best-effort review; structural checks do not
-establish semantic agreement or assertion adequacy.
+Before a commit or final handoff, review the full intended Git diff, including
+new files and affected unchanged promises. Start from substantive behavior and
+boundary cases, including code-only changes; existing links are starting points,
+not the extent of review. Check that implementation and assertions support the
+promises. For substantial semantic changes, seek a small counterexample using
+independent source examples or a suitable oracle, accounting for its assumptions;
+tests and proofs derived from one specification can share an omission. See
+[independent semantic checks](references/semantics.md#independent-semantic-checks).
+Preserve useful counterexamples as regressions. After a repair, inspect its delta
+and affected relationships; repeat full review if earlier conclusions or scope
+no longer hold.
 
-## Run checks and report the result
+## Check and hand off
 
-Use `ib impact --evidence PATH` to inspect changed-file artifact membership,
-native coverage gaps, required execution gaps and immediate-link hubs. A file
-without imported artifacts is an inspection cue, not proof of a missing requirement.
-Keep default revision enforcement optional; strict imported-content revision
-policy also applies to editorial edits. Use trusted `review_paths` for implementation
-roots when code-only changes should leave review pending.
-
-For an interrupted or larger review, optionally create a worklist with
-`ib review start --repo ROOT --evidence PATH --out NEW_DIRECTORY`. Use `ib review
-next`, `record` and `status` with `--worklist DIRECTORY`; record an exact task ID,
-`--state reviewed|deferred|pending` and a meaningful `-m` note. Deferred items remain
-incomplete. The plan covers changed files and immediate graph neighbors, so keep
-reading affected behavior beyond those links. Every resume matches current source
-and trusted policy. After a repair, run a fresh check and start a fresh worklist;
-old notes remain references, not completion of the new change. Progress is unsigned
-local accounting and never clears semantic review or supplies an assurance approval.
-See [development review](../../../docs/development-review.md) in the source checkout
-for full commands; installed packages retain these command instructions.
-
-When the supplied scope enables `tests.execution_links`, review affected test
-artifacts and their execution associations without waiting for an explicit user
-request. Check the artifact declarations, runner mappings or JUnit `oft_id`
-properties, and recorded outcomes together. Maintain `required_artifacts` for
-tests whose passing execution is mandatory; not every test needs a link. Inspect
-`tests.format` before choosing a runner; see [execution links](references/execution-links.md)
-for pytest and unittest producers. Propose missing configuration/producer work
-separately from unsupported capability; changing trusted policy still follows
-the caller's authority.
-
-Run the configured check on the completed candidate and again after repairs:
+Run the configured check on the completed candidate and after repairs:
 
 ```sh
-ib check --repo /path/to/repo
+ib check --repo /path/to/repo --base STARTING_COMMIT --out /path/to/new-evidence
 ```
 
-Use explicit task inputs when supplied:
+Add the caller's `--scope PATH` when supplied; the default candidate is `worktree`.
+`python -m intentbond` is equivalent. Each evidence directory must be new and
+outside the repository. The check runs configured tests; repeat them separately
+only for a concrete need. `--progress` follows retained test output during long
+checks. Trace/test timings do not measure agent effort or all checking overhead.
 
-```sh
-ib check --repo /path/to/repo --scope /path/to/trusted-scope.json \
-  --base BASE_COMMIT --candidate worktree --out /path/to/new-evidence
-```
+Start with printed status, counts, diagnostics and paths. Inspect required changes
+in review.json; review.patch selects specification/test/optional review paths and
+may not contain the full candidate diff or require repeating completed review.
+Open detailed reports/logs for failures or unresolved questions.
+Use `ib impact --compact --evidence PATH` for counts and review observations;
+follow its full-output command for details. Gaps and hubs are inspection cues,
+not proof of missing requirements or correctness.
 
-`python -m intentbond` is equivalent. The runtime requires Git,
-Java, OFT and the project's test dependencies. Each output directory must be new
-and outside the repository. Retain the actual baseline commit, exit code and
-complete bundle. Start with the printed status, counts, diagnostics and artifact
-paths. Open detailed logs/reports for failures or unresolved questions; success
-does not require dumping every retained artifact into context. The check already
-runs the configured tests; repeat them separately only for a concrete need.
-For long checks, add `--progress` to follow retained test output on stderr. The
-final output shows recorded trace-command and test durations separately; those
-timings do not measure agent effort or all checking overhead.
+Exit 0 passes automation; exit 4 leaves semantic review pending. Other exits cannot
+establish completion. Repair in-scope failures and report prerequisite or baseline
+defects without bypassing policy. Changed source requires a fresh check; an earlier
+passing bundle cannot replace a failed run. Suite success alone does not establish
+execution or adequacy of every linked test.
 
-Inspect required changes in review.json. review.patch contains changes selected
-by specification_paths, test_paths and optional review_paths; it need not duplicate
-a review already covering those edits or contain the full candidate diff.
-Exit 0 passes automation; exit 4 leaves semantic review pending.
-Other exits cannot establish completion. Repair in-scope failures;
-report prerequisite or baseline defects without bypassing policy. Changed source
-requires a fresh check; an earlier passing bundle cannot replace a failed run.
+In the existing handoff, retain the actual baseline, exit code and complete evidence
+path; reuse the requirement-change summary and identify checked behavior, gaps,
+contradictions and uncertainty with IDs/locations. Completion requires current-source
+agreement, successful checks and the caller's review gates. Follow the existing Git
+process; this skill does not authorize publishing or acceptance.
 
-Suite success does not establish execution of each linked test. With the optional
-[execution-link profile](references/execution-links.md), preserve missing, skipped
-and ambiguous observations. A reported passing execution is not proof of requirement
-satisfaction. An explain exit 0 means inspection succeeded, not validation passed.
+## Conditional procedures
 
-Once the change is committed or exported to another checkout, verify that commit
-with the original baseline:
-
-```sh
-ib verify --repo /path/to/repo --base BASE_COMMIT --candidate EXPORTED_COMMIT \
-  --evidence /path/to/new-evidence/evidence.json
-```
-
-Add the same --scope if one was supplied. For exit-4 evidence, use
---allow-pending-review only when the caller enforces review before acceptance;
-verification leaves it pending. Recheck changed contents. Follow the existing
-Git/review process; this skill does not itself authorize publishing or acceptance.
-Report the exact evidence path and a concise assessment. Completion requires
-matching current source, successful checks and the caller's review gates.
+| Situation | Read when needed |
+| --- | --- |
+| Tooling is unavailable | [Standalone setup](references/setup.md) |
+| Known IDs need context from saved evidence | [Explain linked context](references/development.md#saved-evidence-context) |
+| Selecting review paths or revision enforcement | [Review policy](references/development.md#review-policy) |
+| A larger/interrupted review needs a resumable worklist | [Review worklists](references/development.md#review-worklists) |
+| Trusted scope enables `tests.execution_links` | [Execution links](references/execution-links.md); review declarations, runner associations and recorded outcomes together |
+| The checked change is committed or exported | [Verify exported source](references/development.md#verify-exported-source) |
