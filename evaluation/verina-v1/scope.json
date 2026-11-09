@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "name": "intentbond-verina-v1-task",
+  "inputs": ["intent.md", "requirements.md", "spec.lean", "checks"],
+  "specification_paths": ["intent.md", "requirements.md", "spec.lean"],
+  "test_paths": ["checks"],
+  "review_paths": ["candidate.json", "task"],
+  "required_coverage": {
+    "intent": ["req"],
+    "req": ["impl", "utest"]
+  },
+  "policy": {
+    "require_revision_increase": false,
+    "allow_skipped_tests": false
+  },
+  "tests": {
+    "format": "junit",
+    "command": ["python3", "/opt/evaluation/run_checks.py"],
+    "report": ".eval/checks.xml",
+    "timeout_seconds": 120
+  }
+}

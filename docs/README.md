@@ -41,3 +41,6 @@ Start with the [README](../README.md) for installation and a first check.
 - [Contributing](../CONTRIBUTING.md) — setup and change guidelines.
 - [Validation](validation.md) — tests, packaging checks, and language examples.
 - [Property test maintenance](property-evaluation.md) — generators and mutation checks.
+- [Specification evaluation protocol](https://github.com/kbak/intentbond/tree/main/evaluation/verina-v1) —
+  repository-only frozen inputs and study design for comparing the current agent
+  workflow and optional repair methods; not a reported benchmark result.

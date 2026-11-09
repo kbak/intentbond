@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "protocol_id": "intentbond-verina-v1",
+  "issue": "https://github.com/kbak/intentbond/issues/8",
+  "state": "protocol_only_requires_E02_E03_qualification",
+  "model": {
+    "id": "gpt-6-astra",
+    "reasoning_effort": "xhigh",
+    "reasoning_mode": "standard_if_exposed",
+    "temperature": null,
+    "top_p": null,
+    "sampling_seed": null,
+    "server_snapshot": null,
+    "snapshot_limitation": "The observed subscription backend exposes an alias, not an immutable server snapshot. No generation was performed in E01.",
+    "subagents": false,
+    "helper_model_substitution": false
+  },
+  "conditions": {
+    "A": {
+      "name": "generic",
+      "initial_suffix": "prompts/generic.md"
+    },
+    "B": {
+      "name": "intentbond-current",
+      "baseline_commit": "e55614cf0898dd98dc8d75795b66ed7764f60f06",
+      "initial_suffix": "prompts/intentbond.md"
+    },
+    "C": {
+      "name": "verispecgen",
+      "lock_owner": "E05",
+      "state": "not_implemented_or_qualified"
+    },
+    "D": {
+      "name": "intentbond-hybrid",
+      "baseline_condition": "B",
+      "lock_owner": "E08",
+      "state": "not_implemented_or_qualified"
+    }
+  },
+  "prompt": {
+    "common": "prompts/common.md",
+    "separator": "\n\n",
+    "task_notice": "Task input: task/input.json\n",
+    "encoding": "UTF-8",
+    "newline": "LF",
+    "output_fields": [
+      "imports",
+      "precond_aux",
+      "precond",
+      "postcond_aux",
+      "postcond"
+    ],
+    "output_field_type": "string",
+    "additional_output_fields": false,
+    "native_candidate_binding": "Trusted checks must compile the canonical rendering of candidate.json and retain both hashes; mismatch is failure, not passing evidence."
+  },
+  "dataset": {
+    "name": "VERINA SpecGen",
+    "upstream_lock_owner": "E02",
+    "fewshot_ids": [
+      "verina_basic_15",
+      "verina_basic_44"
+    ],
+    "reference_code_visible": false,
+    "reference_specification_descriptions_visible": false,
+    "reference_tests_visible": false,
+    "expected_inventory": {
+      "basic": 108,
+      "advanced": 81,
+      "total": 189,
+      "eligible": 187
+    },
+    "development_by_stratum": {
+      "basic": 14,
+      "advanced": 10
+    },
+    "expected_untouched_tasks": 163,
+    "split_algorithm": "ascending SHA-256 hex of UTF-8(split_prefix + exact task ID), then exact task ID as tie-breaker, within each stratum after few-shot exclusion",
+    "split_prefix": "intentbond-verina-v1-split\n",
+    "explicit_lists_owner": "E02",
+    "later_hybrid_reuse": "adaptive/exploratory after E06 inspection; independently authored sealed evolution tasks required for confirmation"
+  },
+  "budget": {
+    "per_attempt": {
+      "input_tokens": 1048576,
+      "output_tokens_including_reasoning": 131072,
+      "output_tokens_per_request": 16384,
+      "model_requests": 60,
+      "tool_operations": 240,
+      "specification_repairs": 25,
+      "distinct_internal_tests": 60,
+      "generation_wall_seconds": 1800,
+      "lean_operation_seconds": 120,
+      "unprocessed_transport_retries": 2
+    },
+    "max_concurrent_generation_attempts": 3,
+    "require_hard_token_enforcement": true,
+    "qualification_owner": "E03",
+    "aggregate_rule": "For each stage, maximum scheduled attempts multiplied by each per-attempt limit; reservations must not exceed either ceiling. No additional measured attempts without a versioned amendment.",
+    "scoring": {
+      "per_operation_seconds": 120,
+      "per_candidate_per_suite_seconds": 3600,
+      "max_concurrent_workers": 3
+    }
+  },
+  "stages": [
+    {
+      "id": "E04-pilot",
+      "conditions": [
+        "A",
+        "B"
+      ],
+      "cohort": "development",
+      "tasks": 24,
+      "repetitions": 3,
+      "max_attempts": 144
+    },
+    {
+      "id": "E05-comparator-development",
+      "conditions": [
+        "C"
+      ],
+      "cohort": "development",
+      "tasks": 24,
+      "repetitions": 3,
+      "max_attempts": 72
+    },
+    {
+      "id": "E06-full",
+      "conditions": [
+        "A",
+        "B",
+        "C"
+      ],
+      "cohort": "all_eligible",
+      "tasks": 187,
+      "repetitions": 5,
+      "max_attempts": 2805
+    },
+    {
+      "id": "E09-final-matched-wave",
+      "conditions": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "cohort": "all_eligible",
+      "tasks": 187,
+      "repetitions": 5,
+      "max_attempts": 3740,
+      "regenerate_controls_if_snapshot_unverifiable": true
+    },
+    {
+      "id": "E09-development-ablations",
+      "conditions": [
+        "D-no-attribution",
+        "D-no-adversarial",
+        "D-no-preservation"
+      ],
+      "cohort": "development",
+      "tasks": 24,
+      "repetitions": 3,
+      "max_attempts": 216
+    }
+  ],
+  "schedule": {
+    "fresh_session_per_attempt": true,
+    "block": "task_id/repetition",
+    "condition_order": "ascending SHA-256 hex of UTF-8(schedule_prefix + stage_id + newline + task_id + newline + repetition_decimal + newline + condition_id), then condition_id",
+    "repetition_index_start": 0,
+    "schedule_prefix": "intentbond-verina-v1-order\n",
+    "parallelism": "Dispatch blocks in split-hash task order and ascending repetition; at most 3 attempts concurrently, independent of condition. Record actual timing and scheduling."
+  },
+  "analysis": {
+    "primary_comparison": [
+      "B",
+      "A"
+    ],
+    "primary_cohort": "initially_untouched",
+    "endpoint": "compiled and all official required SpecGen checks accepted; unknown/error/missing/incomplete outcomes are non-success",
+    "evaluator_status_mapping_owner": "E02",
+    "secondary_comparisons": [
+      [
+        "C",
+        "A"
+      ],
+      [
+        "C",
+        "B"
+      ],
+      [
+        "D",
+        "B"
+      ]
+    ],
+    "task_macro_average": true,
+    "scheduled_failures_retained": true,
+    "confidence_level": 0.95,
+    "bootstrap": {
+      "unit": "task",
+      "stratification": [
+        "basic",
+        "advanced"
+      ],
+      "paired_conditions": true,
+      "repetitions_kept_together": true,
+      "stratum_weights": "original analysis-cohort proportions",
+      "resamples": 10000,
+      "prng": "numpy.random.Generator(PCG64)",
+      "seed": 20261108,
+      "percentile_method": "linear",
+      "analysis_version_lock_owner": "E03"
+    },
+    "suite_aggregation": "separate results for original and augmented suites on the same output hash",
+    "paper_score_comparison": "context only; not a matched model/method effect"
+  },
+  "pilot_gate": {
+    "terminal_accounting_fraction": 1.0,
+    "minimum_classified_scoring_fraction": 0.98,
+    "unclassified_infrastructure_failures": 0,
+    "leakage_controls_pass": true,
+    "budget_controls_pass": true,
+    "tradeoff_flag": {
+      "joint_drop_percentage_points": 5,
+      "rejection_drop_percentage_points": 5,
+      "acceptance_increase_required_for_rejection_flag": true
+    },
+    "negative_model_effect_is_not_automatic_no_go": true
+  },
+  "adoption_decision_thresholds": {
+    "joint_improvement_percentage_points": 3,
+    "maximum_acceptance_drop_percentage_points": 2,
+    "maximum_rejection_drop_percentage_points": 2,
+    "maximum_median_output_token_ratio": 2,
+    "maximum_median_worker_time_ratio": 2,
+    "independent_evolution_evidence_required": true,
+    "decision_owner": "E12"
+  },
+  "required_execution_locks": {
+    "E02": [
+      "dataset_commit_and_hashes",
+      "official_fewshot_exclusions",
+      "explicit_task_lists",
+      "scorer_and_status_mapping",
+      "Lean_library_tactic_versions",
+      "augmented_suite_mapping",
+      "reference_control_exclusions"
+    ],
+    "E03": [
+      "runner_commit",
+      "container_digest",
+      "effective_model_and_runtime_config",
+      "tool_schemas",
+      "rendered_prompt_hashes",
+      "task_fixture_hashes",
+      "trusted_scope_and_driver_hashes",
+      "budget_and_isolation_qualification",
+      "analysis_dependency_versions"
+    ],
+    "E05": [
+      "comparator_source",
+      "internal_prompts",
+      "fidelity_and_deviation_record"
+    ],
+    "E08": [
+      "hybrid_source",
+      "internal_prompts",
+      "repair_feedback_contract"
+    ]
+  }
+}

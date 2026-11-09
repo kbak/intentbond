@@ -1,0 +1,148 @@
+{
+  "build": {
+    "command": "python -m build --no-isolation --outdir DIST SOURCE",
+    "dependencies": {
+      "Pygments": "2.21.0",
+      "build": "1.6.1",
+      "hypothesis": "6.168.2",
+      "iniconfig": "2.3.0",
+      "junitparser": "5.0.3",
+      "packaging": "26.3",
+      "pluggy": "1.6.0",
+      "pyproject_hooks": "1.3.3",
+      "pytest": "9.1.1",
+      "ruff": "0.11.13",
+      "setuptools": "84.0.0",
+      "sortedcontainers": "2.4.0",
+      "z3-solver": "5.1.0.0"
+    },
+    "git": "git version 2.43.0",
+    "python": "3.12.3",
+    "sdist": {
+      "name": "intentbond-0.5.0.tar.gz",
+      "sha256": "3e04af73403bac55cdc9e5de39d8df7fb89f0d38602a401e947d7a1d033cac71",
+      "size_bytes": 286625
+    },
+    "sdist_byte_reproducibility": "Exact observed artifact; gzip/tar metadata can differ on rebuild. Source archive and wheel-content hash are the portable comparisons.",
+    "source_date_epoch": 1793940298,
+    "wheel": {
+      "name": "intentbond-0.5.0-py3-none-any.whl",
+      "sha256": "841896413ab1e07bf53d52632f735a6dc15f0626c95b9044da92eecec20db225",
+      "size_bytes": 160699
+    },
+    "wheel_content_hash_definition": "SHA-256 of UTF-8 JSON (sort_keys=True, separators=(comma,colon)) mapping every non-directory ZIP member except *.dist-info/RECORD to SHA-256(uncompressed bytes).",
+    "wheel_content_sha256": "e3628133723c2f5a7cfc3dc3c639fd9ea1ea0dd76acbfde2e30f454eed18d6dd"
+  },
+  "checker_tools": {
+    "alloy": {
+      "sha256": "6b8c1cb5bc93bedfc7c61435c4e1ab6e688a242dc702a394628d9a9801edb78d",
+      "use": "repository validation only; not required for VERINA generation",
+      "version": "6.2.0"
+    },
+    "benchmark_lean_and_libraries": "E02 execution lock required; no claim that a benchmark toolchain was qualified in E01",
+    "observed_java": "OpenJDK 21.0.12.1+1-1-24.04.4-Ubuntu",
+    "openfasttrace": {
+      "sha256": "d4ed42503ae066f51d55c3aad7c6e4b16acb80365921951ef5a065a4dc3d94f3",
+      "version": "4.9.0"
+    }
+  },
+  "historical_experiments": [
+    {
+      "attempt_timeout_seconds": 180,
+      "codex_binary_sha256": "c06a67fd8ac76508dc78bd99ce20c9f317b8d568beda59485f3f4134df9962d5",
+      "codex_version": "0.165.0",
+      "immutable_server_snapshot": null,
+      "label": "interim-python",
+      "manifest_sha256": "802f4f9183eeccf3e7b0199ee109a10410410b95514d9e50d8efc2ba18b91c16",
+      "model": "gpt-6-astra",
+      "monetary_cost": null,
+      "raw_artifacts_distributed_here": false,
+      "reasoning_effort": "medium",
+      "report_sha256": "1c8526d672ffbb0cd3b9150bfb9da69c50d912527fbfcfd4da38e4a47e1ccfa3",
+      "scope": "guidance-only; 164 tasks, 4 attempts, 3 arms",
+      "skill_sha256": "a31a1b9816ed1c6d1927a0ab754d1ecc159052c754e9b440ca1579d83e17b636"
+    },
+    {
+      "attempt_timeout_seconds": 180,
+      "codex_binary_sha256": "c06a67fd8ac76508dc78bd99ce20c9f317b8d568beda59485f3f4134df9962d5",
+      "codex_version": "0.165.0",
+      "immutable_server_snapshot": null,
+      "label": "translation-development",
+      "manifest_sha256": "e8703864ac82d78efbc86aef894f9825ead71c05f2f65e2b65805911214e517d",
+      "model": "gpt-6-astra",
+      "monetary_cost": null,
+      "raw_artifacts_distributed_here": false,
+      "reasoning_effort": "medium",
+      "scope": "guidance-only development comparison; 12 tasks, 3 attempts, 3 arms",
+      "skill_sha256": "a31a1b9816ed1c6d1927a0ab754d1ecc159052c754e9b440ca1579d83e17b636",
+      "summary_sha256": "10c266d81ce928b974109870d884cf4ce01bfde1a6e4aab78361168b7f68e504"
+    }
+  ],
+  "launch_status": "not qualified; E02 and E03 artifacts are required",
+  "protocol_id": "intentbond-verina-v1",
+  "repository": "https://github.com/kbak/intentbond",
+  "runtime_candidate": {
+    "backend_route": "Codex subscription backend, subject to E03 qualification",
+    "binary_sha256": "cdcb45aaa01d0f14e298985e09465aebccd47f64ecd298aea44814af7b62bbda",
+    "codex_cli_version": "0.167.0",
+    "generation_performed": false,
+    "hard_token_cap_verified": false,
+    "immutable_server_snapshot": null,
+    "model_requested": "gpt-6-astra",
+    "reasoning_effort": "xhigh",
+    "status": "requires E03 budget/control qualification; amend protocol before measured generation if a different runtime is necessary",
+    "target": "x86_64-unknown-linux-musl"
+  },
+  "schema_version": 1,
+  "selected_on": "2026-11-08",
+  "source": {
+    "archive": {
+      "name": "source.tar",
+      "sha256": "5ce54d1e2f67bb272683113be9b8b7312e0c91cade6b5c87553b206ec6955ef0",
+      "size_bytes": 3512320
+    },
+    "commit": "e55614cf0898dd98dc8d75795b66ed7764f60f06",
+    "commit_timestamp": 1793940298,
+    "dirty_source": false,
+    "package_name": "intentbond",
+    "package_version": "0.5.0",
+    "selected_file_sha256": {
+      "AGENTS.md": "a24606f221f7c242a02b30d8d48587fd80c4b92c8b41729be5b0a4cfd8cde505",
+      "CONTRIBUTING.md": "566733ecfbb73eab2d4cf5de39b16645d5da17fbf29a5b8d3a3fb15775baaf4b",
+      "MANIFEST.in": "bcf5846ff4f64d8021fcf104444f934a6fda8bbf74c7cdb120d5ff93ed482a7f",
+      "README.md": "b395bd2cb07b0b7cc3c9cb3868d1ab4942598a6643f18be723eede10351cb8bb",
+      "docs/contract.md": "b22d646b86f98a95f46d3be6a16165c0f847c3e8722219cd5d2161aa32b3c75f",
+      "docs/intent.md": "14797965c3f2b734cb91d7a88c2f5fda5c0dab3dd598c66fd129e82c1e0d9a87",
+      "docs/requirement-granularity.md": "a72fdec1affb728c4b179f14fdbd58635de1db866e8c2f386260c17b1eaf4150",
+      "docs/spec.md": "55ce2ec2239184ccaa646249c035f1238e4c34349a298e26880d303b87c99579",
+      "docs/validation.md": "6c57388fbd3807e93983678835b66637c92f8f6228dcf1edbafc2f04165bbb0d",
+      "intentbond/skills/intentbond/SKILL.md": "f86bf8f1e00cdf4fafc0028119d28424d55bc1d7f2530068b0214d1884af177e",
+      "intentbond/skills/intentbond/references/execution-links.md": "8431078ea268fe770d4663ee5a205a2574627af1e299af3b32839e0a71c2e437",
+      "intentbond/skills/intentbond/references/requirements.md": "d2133e07a527339c55a6aa9410fed880351310e0a2f5f585c5bab22854e817c0",
+      "intentbond/skills/intentbond/references/semantics.md": "b3dbaf8da95d9d230f5a90b887ae76815ebf4ed8a96b48ff8f55d6aa97896763",
+      "intentbond/skills/intentbond/references/setup.md": "52e788440819ebbad41d47c7dc781942dfe7a711952a58cce297d44830473682",
+      "intentbond/skills/model-checking/SKILL.md": "c3a3a1cee2776913e6d03ffdd7dd1aa9ede3f47eba6cf612d69cf4eabb72114c",
+      "intentbond/skills/model-checking/references/chc.md": "d8a856dbc467110330e90a5decc8c0c170290338a57a41c6cf3c8b2994e3541d",
+      "intentbond/skills/model-checking/references/daml.md": "2bc8c1cde2a2a37b283b0c648b011215fd984b7b24dc0f12c110d3bfdc0c7696",
+      "intentbond/skills/model-checking/references/execution.md": "e06a4a3053771938e72489f0790c9b13f11666c0d1c3a8791f4fe300449646cf",
+      "intentbond/skills/model-checking/references/python.md": "6016fe24ec1679713fc9d6586538edf08301aa309453070fe9b48f1e0d25a953",
+      "intentbond/skills/model-checking/references/smt.md": "0d1ad33775e7c4d086fad9b243f9181a0a1a88e226c5c1df6ecba168e1c71961",
+      "intentbond/skills/property-testing/SKILL.md": "75ac099a9132621087adee08f08830f4dc117ec0d265cf256439c9cc944fcf0e",
+      "intentbond/skills/property-testing/references/daml.md": "eafb6060270ddd7219b8836554fdbd80c40330726de53d035bc21440329f7cd4",
+      "intentbond/skills/property-testing/references/formalization.md": "ba38aa28a33cd8ec211401570de72d8392667306c72352e2b7274fb20147ccfc",
+      "intentbond/skills/property-testing/references/haskell.md": "a876c5ce4304a266d158fdccaa53a3e186822cb24929d0570da56351e4513eea",
+      "intentbond/skills/property-testing/references/hegel.md": "33af74bec7ca6b423e6181c333a9706c39d1beaf0b3119575b0ea2f5cf886aca",
+      "intentbond/skills/property-testing/references/python.md": "aba3be0c8a655bcda29a00a88b6feb3432ae1adbd3ee3ae0054be96106804979",
+      "intentbond/skills/property-testing/references/typescript.md": "aa361b47915cb992a3bdf3287a9b04687cfbb10cd5fbe135ce4748bb49035715",
+      "intentbond/skills/recover-baseline/SKILL.md": "bb57fb7930724d9573654134f12ded9d49492be33b0fd758eb4c97f7df1b00e5",
+      "intentbond/skills/recover-baseline/references/recovery.md": "f362cba8ac23d82033718f7fd0240bed86034f212a4bb562899d6572f5c8a6a0",
+      "pyproject.toml": "efdf82bd37355f86ee44018dee1a1e632ea48a069952361b88c59bb16025ba5b",
+      "requirements/ci.in": "45120aef13e6c73bffe693e775f11ff83e87e61945701bbc5933ec36e63c7906",
+      "requirements/ci.txt": "440de20d5f66482a0a826e9a09da20f89cbff7913ad7ee90a6f455b6ea3fc7a7",
+      "requirements/runtime.txt": "3e01ca9b5a2050454fdbeaa8828d487d0032d93bbf4840ff77fc72e3f715f9f8",
+      "scope.json": "1fb4757686c0cde1a8e72dd7cc53e72390d5c6a7f5055a7057a8d00b27c540fb"
+    },
+    "tree": "9daaec6ca5a880d3a1ac323704bd3df5d57c61de"
+  },
+  "timezone": "America/Phoenix"
+}
