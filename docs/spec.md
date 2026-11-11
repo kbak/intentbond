@@ -1123,3 +1123,13 @@ token/tool limits and OS isolation remain caller obligations. The
 [agent bridge regressions](../tests/test_agent_adapter_example.py) exercise copy
 isolation, unfiltered unwanted edits, input pins, failed/partial/stale responses
 and timeouts. See the [example command contract](../examples/async-lifecycle#use-a-coding-agent).
+
+The [shared bridge](../examples/agent_bridge.py) also carries the
+[reservation profile](../examples/reservation). Profile instructions, reference
+phases, edit boundaries and operational report exclusions remain trusted inputs;
+the transport contains no application-specific requirements. Both profiles pin
+the shared implementation and forward unwanted edits for native evaluation.
+[Reservation regressions](../tests/test_reservation_example.py) preserve D4's
+case outcomes, reject rollback/history loss and accept two legal implementations.
+This is reuse across two qualified fixtures, not automatic oracle construction or
+a measured accuracy advantage over an ordinary agent.

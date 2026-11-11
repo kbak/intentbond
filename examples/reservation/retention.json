@@ -1,0 +1,731 @@
+{
+  "source": "D4 reservation qualification, D2 event-log reference",
+  "cases": 527,
+  "semantic_sha256": "7cbc0e094cc000a585dadf5e71b3c957d95a41d5d05fa428b2cbe7178caed2bc",
+  "historical_test_sha256": "f7d6b59a8996f7af94005a6eb1e368b460946017fcc4cab67b8de50b62a75763",
+  "rollback": [
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "b",
+                "qty": 3
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"error\":\"batch_failed\",\"status\":409},\"state\":{\"active\":{},\"seen\":{}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":2},\"seen\":{\"a\":2}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "b",
+                "qty": 0
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"error\":\"batch_failed\",\"status\":400},\"state\":{\"active\":{},\"seen\":{}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":2},\"seen\":{\"a\":2}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "a",
+                "qty": 2
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"error\":\"batch_failed\",\"status\":409},\"state\":{\"active\":{},\"seen\":{}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":2},\"seen\":{\"a\":2}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"error\":\"batch_failed\",\"status\":400},\"state\":{\"active\":{},\"seen\":{}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":2},\"seen\":{\"a\":2}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "b",
+                "qty": true
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"error\":\"batch_failed\",\"status\":400},\"state\":{\"active\":{},\"seen\":{}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":2},\"seen\":{\"a\":2}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 3,
+        "operations": [
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 1
+          },
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "new",
+                "qty": 1
+              },
+              {
+                "key": "more",
+                "qty": 3
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 1
+          },
+          {
+            "op": "reserve",
+            "key": "new",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"quantity\":1,\"reservation\":\"old\",\"status\":200},\"state\":{\"active\":{\"old\":1},\"seen\":{\"old\":1}}},{\"result\":{\"error\":\"batch_failed\",\"status\":409},\"state\":{\"active\":{\"old\":1},\"seen\":{\"old\":1}}},{\"result\":{\"quantity\":1,\"reservation\":\"old\",\"status\":200},\"state\":{\"active\":{\"old\":1},\"seen\":{\"old\":1}}},{\"result\":{\"quantity\":2,\"reservation\":\"new\",\"status\":200},\"state\":{\"active\":{\"new\":2,\"old\":1},\"seen\":{\"new\":2,\"old\":1}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 3,
+        "operations": [
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 1
+          },
+          {
+            "op": "cancel",
+            "key": "old"
+          },
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "new",
+                "qty": 1
+              },
+              {
+                "key": "old",
+                "qty": 2
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 1
+          },
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 2
+          },
+          {
+            "op": "reserve",
+            "key": "new",
+            "qty": 3
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"quantity\":1,\"reservation\":\"old\",\"status\":200},\"state\":{\"active\":{\"old\":1},\"seen\":{\"old\":1}}},{\"result\":{\"cancelled\":\"old\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"old\":1}}},{\"result\":{\"error\":\"batch_failed\",\"status\":409},\"state\":{\"active\":{},\"seen\":{\"old\":1}}},{\"result\":{\"quantity\":1,\"reservation\":\"old\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"old\":1}}},{\"result\":{\"error\":\"conflict\",\"status\":409},\"state\":{\"active\":{},\"seen\":{\"old\":1}}},{\"result\":{\"quantity\":3,\"reservation\":\"new\",\"status\":200},\"state\":{\"active\":{\"new\":3},\"seen\":{\"new\":3,\"old\":1}}}]"
+      ]
+    }
+  ],
+  "idempotency": [
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "a",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 1
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"reservations\":[{\"quantity\":1,\"reservation\":\"a\",\"status\":200},{\"quantity\":1,\"reservation\":\"a\",\"status\":200}],\"status\":200},\"state\":{\"active\":{\"a\":1},\"seen\":{\"a\":1}}},{\"result\":{\"quantity\":1,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":1},\"seen\":{\"a\":1}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 3,
+        "operations": [
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 1
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 1
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 1
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "b",
+            "qty": 3
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"quantity\":1,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":1},\"seen\":{\"a\":1}}},{\"result\":{\"quantity\":1,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":1},\"seen\":{\"a\":1}}},{\"result\":{\"error\":\"conflict\",\"status\":409},\"state\":{\"active\":{\"a\":1},\"seen\":{\"a\":1}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":1}}},{\"result\":{\"quantity\":1,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":1}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":1}}},{\"result\":{\"quantity\":3,\"reservation\":\"b\",\"status\":200},\"state\":{\"active\":{\"b\":3},\"seen\":{\"a\":1,\"b\":3}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "b",
+                "qty": 3
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"error\":\"batch_failed\",\"status\":409},\"state\":{\"active\":{},\"seen\":{}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":2},\"seen\":{\"a\":2}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "b",
+                "qty": 0
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"error\":\"batch_failed\",\"status\":400},\"state\":{\"active\":{},\"seen\":{}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":2},\"seen\":{\"a\":2}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "a",
+                "qty": 2
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"error\":\"batch_failed\",\"status\":409},\"state\":{\"active\":{},\"seen\":{}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":2},\"seen\":{\"a\":2}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"error\":\"batch_failed\",\"status\":400},\"state\":{\"active\":{},\"seen\":{}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":2},\"seen\":{\"a\":2}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "b",
+                "qty": true
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"error\":\"batch_failed\",\"status\":400},\"state\":{\"active\":{},\"seen\":{}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{\"a\":2},\"seen\":{\"a\":2}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}},{\"result\":{\"quantity\":2,\"reservation\":\"a\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"a\":2}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 3,
+        "operations": [
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 1
+          },
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "new",
+                "qty": 1
+              },
+              {
+                "key": "more",
+                "qty": 3
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 1
+          },
+          {
+            "op": "reserve",
+            "key": "new",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"quantity\":1,\"reservation\":\"old\",\"status\":200},\"state\":{\"active\":{\"old\":1},\"seen\":{\"old\":1}}},{\"result\":{\"error\":\"batch_failed\",\"status\":409},\"state\":{\"active\":{\"old\":1},\"seen\":{\"old\":1}}},{\"result\":{\"quantity\":1,\"reservation\":\"old\",\"status\":200},\"state\":{\"active\":{\"old\":1},\"seen\":{\"old\":1}}},{\"result\":{\"quantity\":2,\"reservation\":\"new\",\"status\":200},\"state\":{\"active\":{\"new\":2,\"old\":1},\"seen\":{\"new\":2,\"old\":1}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 3,
+        "operations": [
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 1
+          },
+          {
+            "op": "cancel",
+            "key": "old"
+          },
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "new",
+                "qty": 1
+              },
+              {
+                "key": "old",
+                "qty": 2
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 1
+          },
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 2
+          },
+          {
+            "op": "reserve",
+            "key": "new",
+            "qty": 3
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"quantity\":1,\"reservation\":\"old\",\"status\":200},\"state\":{\"active\":{\"old\":1},\"seen\":{\"old\":1}}},{\"result\":{\"cancelled\":\"old\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"old\":1}}},{\"result\":{\"error\":\"batch_failed\",\"status\":409},\"state\":{\"active\":{},\"seen\":{\"old\":1}}},{\"result\":{\"quantity\":1,\"reservation\":\"old\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"old\":1}}},{\"result\":{\"error\":\"conflict\",\"status\":409},\"state\":{\"active\":{},\"seen\":{\"old\":1}}},{\"result\":{\"quantity\":3,\"reservation\":\"new\",\"status\":200},\"state\":{\"active\":{\"new\":3},\"seen\":{\"new\":3,\"old\":1}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 3,
+        "operations": [
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 1
+          },
+          {
+            "op": "cancel",
+            "key": "old"
+          },
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "old",
+                "qty": 1
+              },
+              {
+                "key": "new",
+                "qty": 3
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 1
+          },
+          {
+            "op": "reserve",
+            "key": "old",
+            "qty": 2
+          },
+          {
+            "op": "cancel",
+            "key": "old"
+          },
+          {
+            "op": "cancel",
+            "key": "new"
+          },
+          {
+            "op": "reserve",
+            "key": "new",
+            "qty": 3
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"quantity\":1,\"reservation\":\"old\",\"status\":200},\"state\":{\"active\":{\"old\":1},\"seen\":{\"old\":1}}},{\"result\":{\"cancelled\":\"old\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"old\":1}}},{\"result\":{\"reservations\":[{\"quantity\":1,\"reservation\":\"old\",\"status\":200},{\"quantity\":3,\"reservation\":\"new\",\"status\":200}],\"status\":200},\"state\":{\"active\":{\"new\":3},\"seen\":{\"new\":3,\"old\":1}}},{\"result\":{\"quantity\":1,\"reservation\":\"old\",\"status\":200},\"state\":{\"active\":{\"new\":3},\"seen\":{\"new\":3,\"old\":1}}},{\"result\":{\"error\":\"conflict\",\"status\":409},\"state\":{\"active\":{\"new\":3},\"seen\":{\"new\":3,\"old\":1}}},{\"result\":{\"cancelled\":\"old\",\"status\":200},\"state\":{\"active\":{\"new\":3},\"seen\":{\"new\":3,\"old\":1}}},{\"result\":{\"cancelled\":\"new\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"new\":3,\"old\":1}}},{\"result\":{\"quantity\":3,\"reservation\":\"new\",\"status\":200},\"state\":{\"active\":{},\"seen\":{\"new\":3,\"old\":1}}}]"
+      ]
+    },
+    {
+      "input": {
+        "capacity": 2,
+        "operations": [
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "b",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              },
+              {
+                "key": "b",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "op": "cancel",
+            "key": "a"
+          },
+          {
+            "op": "batch",
+            "items": [
+              {
+                "key": "a",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "op": "reserve",
+            "key": "a",
+            "qty": 2
+          }
+        ]
+      },
+      "accepted": [
+        "[{\"result\":{\"reservations\":[{\"quantity\":1,\"reservation\":\"a\",\"status\":200},{\"quantity\":1,\"reservation\":\"b\",\"status\":200}],\"status\":200},\"state\":{\"active\":{\"a\":1,\"b\":1},\"seen\":{\"a\":1,\"b\":1}}},{\"result\":{\"reservations\":[{\"quantity\":1,\"reservation\":\"a\",\"status\":200},{\"quantity\":1,\"reservation\":\"b\",\"status\":200}],\"status\":200},\"state\":{\"active\":{\"a\":1,\"b\":1},\"seen\":{\"a\":1,\"b\":1}}},{\"result\":{\"cancelled\":\"a\",\"status\":200},\"state\":{\"active\":{\"b\":1},\"seen\":{\"a\":1,\"b\":1}}},{\"result\":{\"reservations\":[{\"quantity\":1,\"reservation\":\"a\",\"status\":200}],\"status\":200},\"state\":{\"active\":{\"b\":1},\"seen\":{\"a\":1,\"b\":1}}},{\"result\":{\"error\":\"conflict\",\"status\":409},\"state\":{\"active\":{\"b\":1},\"seen\":{\"a\":1,\"b\":1}}}]"
+      ]
+    }
+  ],
+  "d4_original_reference_sha256": "6744f40761e5a18ab43cd374b45599a3560921f127ba33499c38f6cfacad310d"
+}

@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 import contract
-from agent_adapter import configuration
+from agent_adapter import bridge
 from demo import REGRESSION, baseline
 from qualification import qualify
 from runtime import ROOT
@@ -17,31 +17,20 @@ from intentbond.repair import repair
 
 
 def policy(config_path, seconds):
-    config = configuration(config_path)
-    pins = {
-        str(p): digest(p.read_bytes())
-        for p in sorted(ROOT.rglob("*"))
-        if p.is_file() and p.suffix in (".py", ".json", ".md") and "__pycache__" not in p.parts
-    }
-    pins.update(config["inputs"])
-    pins[str(config_path)] = digest(config_path.read_bytes())
-    return {
-        "schema_version": 1,
-        "requirements": contract.REQUIREMENTS,
-        "edits": [
+    return bridge.policy(
+        config_path,
+        seconds,
+        root=ROOT,
+        requirements=contract.REQUIREMENTS,
+        edits=[
             {
                 "path": "client/controller.py",
                 "symbol": "Form.validate",
                 "requirements": [contract.ASYNC],
             }
         ],
-        "adapter": {
-            "command": [sys.executable, "-B", str(ROOT / "agent_adapter.py"), str(config_path)],
-            "inputs": pins,
-        },
-        "regression": REGRESSION,
-        "limits": {"seconds": seconds, "repairs": 2, "cases": 1000},
-    }
+        regression=REGRESSION,
+    )
 
 
 def run(out, config, jar, seconds=240, variant="counter-reset"):

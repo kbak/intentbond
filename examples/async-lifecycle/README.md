@@ -133,8 +133,11 @@ measured accuracy advantage over an ordinary coding model.
 ## Use a coding agent
 
 `agent_demo.py` reuses this profile and its regression data with a coding agent.
-Like the qualified development runner, `agent_adapter.py` gives the agent a
-separate copy and converts its complete source delta into a proposal. Only
+Like the qualified development runner, `agent_adapter.py` supplies lifecycle
+instructions to the shared [command bridge](../agent_bridge.py), which gives the
+agent a separate copy and converts its complete source delta into a proposal. The
+[reservation profile](../reservation) uses the same bridge with D4's rollback and
+idempotency checks and its own edit boundary. Only
 proposal production changes; generation, both reference models, observation,
 regression scaffolding, body boundaries and native checks stay the same.
 
@@ -190,6 +193,9 @@ be represented by this text-proposal API and stop as unresolved. Only Git metada
 Python bytecode directories and the fixture's `test-results.xml` operational report
 are omitted from the delta. Partial, stale, malformed or failed command results
 cannot produce a successful proposal. An unchanged proposal remains rejected.
+The operational report exclusion comes from the trusted profile. The shared
+bridge and all profile dependencies are pinned by the repair policy; an agent
+response cannot select instructions, exclusions or a different edit boundary.
 
 Inspect `result.json`, `repair/repair-*/proposal.json` and
 `repair/adapter-*-propose/agent/` for prompts, command logs, responses, complete

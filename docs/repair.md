@@ -18,6 +18,11 @@ It hands concrete failures to a coding agent in a separate workspace and submits
 the complete source delta through the same checks. Agent completion is distinct
 from accepted repair; partial commands and unsupported edits cannot pass. Model
 selection, provider accounting and OS isolation stay with the caller.
+The shared [bridge implementation](../examples/agent_bridge.py) also serves the
+[reservation example](../examples/reservation), which reuses D4's rollback and
+idempotency checks. Each trusted profile supplies its own instructions, references,
+regression scaffold, edit boundary and operational report exclusion. Both the
+bridge and profile are pinned; neither is selected by candidate output.
 
 The caller supplies a trusted external adapter for case generation, reference
 labels, observation, regression scaffolding and proposals. IntentBond owns the

@@ -11,12 +11,14 @@ from pathlib import Path
 EXAMPLE = Path(__file__).resolve().parents[1] / "examples/async-lifecycle"
 ACTOR = """import json, os, sys, time
 from pathlib import Path
-mode, request, response = sys.argv[1:]
+mode, target, authorized, foreign, request, response = sys.argv[1:]
 q = json.loads(Path(request).read_text())
 root = Path(q['worktree'])
 assert Path.cwd() == root
-assert 'retained-example' in Path(q['prompt']).read_text()
-p = root/'client/controller.py'
+prompt = Path(q['prompt']).read_text()
+assert 'retained-example' in prompt
+assert authorized in prompt and foreign not in prompt
+p = root/target
 p.write_text(p.read_text().replace('return False', 'return True'))
 if mode == 'collateral':
     (root/'requirements.md').write_text('')
@@ -35,13 +37,18 @@ if mode == 'exit': sys.exit(1)
 
 
 class AgentAdapterExampleTests(unittest.TestCase):
+    example = EXAMPLE
+    target = "client/controller.py"
+    authorized = "Form.validate"
+    foreign = "Service.batch"
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.source = self.root / "source"
-        (self.source / "client").mkdir(parents=True)
-        (self.source / "client/controller.py").write_text("def validate():\n    return False\n")
+        (self.source / self.target).parent.mkdir(parents=True)
+        (self.source / self.target).write_text("def validate():\n    return False\n")
         (self.source / "requirements.md").write_text("Keep the accepted promise.\n")
         self.actor = self.root / "actor.py"
         self.actor.write_text(ACTOR)
@@ -53,7 +60,15 @@ class AgentAdapterExampleTests(unittest.TestCase):
         config.write_text(
             json.dumps(
                 {
-                    "command": [sys.executable, "-B", str(self.actor), mode],
+                    "command": [
+                        sys.executable,
+                        "-B",
+                        str(self.actor),
+                        mode,
+                        self.target,
+                        self.authorized,
+                        self.foreign,
+                    ],
                     "inputs": {
                         str(self.actor): "bad"
                         if bad_pin
@@ -79,7 +94,7 @@ class AgentAdapterExampleTests(unittest.TestCase):
             [
                 sys.executable,
                 "-B",
-                str(EXAMPLE / "agent_adapter.py"),
+                str(self.example / "agent_adapter.py"),
                 str(config),
                 str(request),
                 str(response),
@@ -88,7 +103,7 @@ class AgentAdapterExampleTests(unittest.TestCase):
             text=True,
             timeout=15,
         )
-        self.assertIn("return False", (self.source / "client/controller.py").read_text())
+        self.assertIn("return False", (self.source / self.target).read_text())
         self.assertEqual(
             (self.source / "requirements.md").read_text(), "Keep the accepted promise.\n"
         )
@@ -103,7 +118,7 @@ class AgentAdapterExampleTests(unittest.TestCase):
         self.assertEqual(value["proposal"]["targets"], ["req~example~1"])
         self.assertEqual(
             value["proposal"]["files"],
-            {"client/controller.py": "def validate():\n    return True\n"},
+            {self.target: "def validate():\n    return True\n"},
         )
         self.assertTrue((folder / "agent/prompt.txt").is_file())
         self.assertTrue((folder / "agent/execution.json").is_file())
@@ -113,7 +128,7 @@ class AgentAdapterExampleTests(unittest.TestCase):
         result, response, _ = self.run_adapter("collateral")
         self.assertEqual(result.returncode, 0, result.stderr)
         files = json.loads(response.read_text())["proposal"]["files"]
-        self.assertEqual(set(files), {"client/controller.py", "requirements.md", "extra.py"})
+        self.assertEqual(set(files), {self.target, "requirements.md", "extra.py"})
         self.assertEqual(files["requirements.md"], "")
 
     def test_unrepresentable_edits_are_not_lost_from_the_proposal(self):
@@ -133,9 +148,7 @@ class AgentAdapterExampleTests(unittest.TestCase):
                 result, response, folder = self.run_adapter(mode)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertFalse(response.exists())
-                self.assertIn(
-                    "return True", (folder / "agent/work/client/controller.py").read_text()
-                )
+                self.assertIn("return True", (folder / "agent/work" / self.target).read_text())
 
     def test_timeout_retains_partial_work_without_a_success_response(self):
         # [utest->req~ib-repair-loop~1]
@@ -156,12 +169,12 @@ class AgentAdapterExampleTests(unittest.TestCase):
         self.assertFalse((folder / "agent").exists())
 
     def test_agent_demo_refuses_in_checkout_output(self):
-        output = EXAMPLE / "must-not-be-created"
+        output = self.example / "must-not-be-created"
         result = subprocess.run(
             [
                 sys.executable,
                 "-B",
-                str(EXAMPLE / "agent_demo.py"),
+                str(self.example / "agent_demo.py"),
                 "--out",
                 str(output),
                 "--agent-config",
@@ -174,3 +187,10 @@ class AgentAdapterExampleTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("outside the source checkout", result.stderr)
         self.assertFalse(output.exists())
+
+
+class ReservationAgentAdapterExampleTests(AgentAdapterExampleTests):
+    example = EXAMPLE.parent / "reservation"
+    target = "service.py"
+    authorized = "Service.batch"
+    foreign = "Form.validate"

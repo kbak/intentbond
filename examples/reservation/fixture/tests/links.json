@@ -1,0 +1,17 @@
+{
+  "test_reservation_capacity.Spec.test_rule": [
+    "utest~reservation-capacity-check~1"
+  ],
+  "test_reservation_idempotency.Spec.test_rule": [
+    "utest~reservation-idempotency-check~1"
+  ],
+  "test_reservation_atomic.Spec.test_rule": [
+    "utest~reservation-atomic-check~1"
+  ],
+  "test_reservation_cancel.Spec.test_rule": [
+    "utest~reservation-cancel-check~1"
+  ],
+  "test_reservation_batch.Spec.test_rule": [
+    "utest~reservation-batch-check~1"
+  ]
+}
