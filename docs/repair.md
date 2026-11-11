@@ -3,8 +3,15 @@
 `ib repair run` adds counterexample search and local repair to a caller-pinned
 [change guard](change-guard.md). Ordinary `check`, `verify`, recovery and guard
 commands do not invoke it. This first profile supports Python function bodies,
-JSON cases and native JUnit execution links. No model service, reference
-implementation or fixture-specific repair is bundled.
+JSON cases and native JUnit execution links. The runtime selects no model service,
+reference implementation or default repair adapter.
+
+For a runnable offline introduction, use the
+[async lifecycle example](../examples/async-lifecycle). The source checkout and
+source distribution include its form fixture, independent references, retained
+counterexamples and deterministic demonstration actor. It uses this existing API
+and changes no default behavior. The example is application-specific and does not
+ship as a runtime adapter in the wheel.
 
 The caller supplies a trusted external adapter for case generation, reference
 labels, observation, regression scaffolding and proposals. IntentBond owns the

@@ -33,6 +33,8 @@ Start with the [README](../README.md) for installation and a first check.
 ## Examples and agent guidance
 
 - [Session expiration](../examples/session) and [pytest session](../examples/pytest-session).
+- [Async lifecycle repair](../examples/async-lifecycle) — offline opt-in repair,
+  interleaved request regressions and ordinary-plus-retention comparison.
 - [Property tests](../examples/property-testing) in Python, TypeScript, and Haskell.
 - [Alloy](../examples/model-checking), [SMT](../examples/smt-checking), and [CHC](../examples/chc-checking) checks.
 - [Development skill](../intentbond/skills/intentbond/SKILL.md) and

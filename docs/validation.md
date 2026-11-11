@@ -56,6 +56,14 @@ upstream producer fix is preferable once available and verified.
 The [property mutation checks](../.github/workflows/property-evaluation.yml) run
 on manual dispatch, separately from the normal pull-request checks.
 
+The [async lifecycle example](../examples/async-lifecycle) has a standalone offline
+qualification command. CI executes it from the extracted source distribution with
+the installed wheel and already-provisioned JAR. It verifies 754 retained case
+records, both exact counter-reset regressions, legitimate alternatives, 12 repair
+API controls, ordinary-plus-retention parity and pending semantic review. It needs
+no model service, historical research directory or additional runtime dependency.
+See its README for the single command and finite coverage bounds.
+
 ## Build a release from clean source
 
 Build from the committed revision you intend to publish, using a fresh directory

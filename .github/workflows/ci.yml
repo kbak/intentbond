@@ -55,6 +55,9 @@ jobs:
           python -c 'from importlib.resources import files; p = files("intentbond") / "skills/property-testing"; assert (p / "SKILL.md").is_file(); assert all((p / "references" / (n + ".md")).is_file() for n in ("python", "typescript", "haskell", "hegel"))'
           python -m pytest -p hypothesispytest -p intentbond.pytest_junit "$RUNNER_TEMP/source/tests" --junitxml="$RUNNER_TEMP/tests.xml" -q
           python -c 'import sys; from pathlib import Path; from intentbond.testing import junit_counts; junit_counts(Path(sys.argv[1]))' "$RUNNER_TEMP/tests.xml"
+      - name: Qualify the opt-in async lifecycle example offline
+        working-directory: ${{ runner.temp }}
+        run: python -B "$RUNNER_TEMP/source/examples/async-lifecycle/demo.py" --out "$RUNNER_TEMP/async-lifecycle"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
@@ -62,6 +65,7 @@ jobs:
           path: |
             dist/
             ${{ runner.temp }}/tests.xml
+            ${{ runner.temp }}/async-lifecycle/
 
   property-examples:
     runs-on: ubuntu-24.04

@@ -1,0 +1,10 @@
+{
+  "profile": "d11-async-lifecycle-v1",
+  "old_cases": 618,
+  "new_cases": 136,
+  "total_cases": 754,
+  "old_semantic_sha256": "32923fda099f661a7349753750e2c7e8a87b675bc99b8c776ab51512510d8b15",
+  "new_semantic_sha256": "2e76e95b875dbe9ab725eb210575ff7039413d03a25dad5fde488646d985aa43",
+  "exact_regressions": 2,
+  "relocation": "Inputs, IDs, kinds, requirement mappings and accepted outcomes retained. Label source paths relocated to packaged references; historical studies are unchanged."
+}

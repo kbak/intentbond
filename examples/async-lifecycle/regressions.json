@@ -1,0 +1,152 @@
+[
+  {
+    "id": "interleaved-latest-valid",
+    "input": {
+      "events": [
+        {
+          "start": ""
+        },
+        {
+          "start": "Ada"
+        },
+        {
+          "complete": 1
+        },
+        {
+          "start": "\u674e\u96f7"
+        },
+        {
+          "complete": 0
+        },
+        {
+          "complete": 2
+        }
+      ]
+    },
+    "expected": {
+      "component": {
+        "label": "Continue",
+        "name": "display_name",
+        "type": "input"
+      },
+      "requests": [
+        {
+          "display_name": ""
+        },
+        {
+          "display_name": "Ada"
+        },
+        {
+          "display_name": "\u674e\u96f7"
+        }
+      ],
+      "states": [
+        {
+          "error": null,
+          "event": "start:0",
+          "pending": true
+        },
+        {
+          "error": null,
+          "event": "start:1",
+          "pending": true
+        },
+        {
+          "error": null,
+          "event": "complete:1",
+          "pending": false
+        },
+        {
+          "error": null,
+          "event": "start:2",
+          "pending": true
+        },
+        {
+          "error": null,
+          "event": "complete:0",
+          "pending": true
+        },
+        {
+          "error": null,
+          "event": "complete:2",
+          "pending": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "interleaved-latest-invalid",
+    "input": {
+      "events": [
+        {
+          "start": "Ada"
+        },
+        {
+          "start": "Zo\u00eb"
+        },
+        {
+          "complete": 1
+        },
+        {
+          "start": ""
+        },
+        {
+          "complete": 0
+        },
+        {
+          "complete": 2
+        }
+      ]
+    },
+    "expected": {
+      "component": {
+        "label": "Continue",
+        "name": "display_name",
+        "type": "input"
+      },
+      "requests": [
+        {
+          "display_name": "Ada"
+        },
+        {
+          "display_name": "Zo\u00eb"
+        },
+        {
+          "display_name": ""
+        }
+      ],
+      "states": [
+        {
+          "error": null,
+          "event": "start:0",
+          "pending": true
+        },
+        {
+          "error": null,
+          "event": "start:1",
+          "pending": true
+        },
+        {
+          "error": null,
+          "event": "complete:1",
+          "pending": false
+        },
+        {
+          "error": null,
+          "event": "start:2",
+          "pending": true
+        },
+        {
+          "error": null,
+          "event": "complete:0",
+          "pending": true
+        },
+        {
+          "error": "required",
+          "event": "complete:2",
+          "pending": false
+        }
+      ]
+    }
+  }
+]

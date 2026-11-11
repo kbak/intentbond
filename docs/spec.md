@@ -1106,3 +1106,11 @@ signature, decorator, enclosing-comment and other-function bytes across sync/asy
 functions, methods, multiline headers, Unicode, tabs and physical newline forms.
 Adapter correctness and OS isolation are caller assumptions, not properties
 established by the loop.
+
+The [portable async lifecycle example](../examples/async-lifecycle) exercises these
+unchanged promises with retained interleaved-request failures, a legal alternative
+implementation, rejected edits and unresolved evidence. Its bounded reference
+qualification is checked by [example tests](../tests/test_async_lifecycle_example.py);
+CI runs the full offline API demonstration from the source distribution against
+the installed wheel. The example's application contract is scoped to its fixture,
+not a new default product profile or a generic claim about async programs.
