@@ -64,3 +64,21 @@ Add the same `--scope` if one was supplied. For exit-4 evidence, use
 verification leaves it pending. Verify matches source without rerunning tests.
 Recheck changed contents. Keep the evidence, source identity and pending decisions
 in the existing handoff; verification does not authorize publishing or acceptance.
+
+## Optional change guard
+
+When requested, `ib guard prepare --base START --evidence BASE_EVIDENCE
+--declaration CHANGE_JSON --out NEW_DIRECTORY` freezes a change declaration outside
+the repository and evidence. It preserves baseline requirement references except
+explicit authorized changes/removals, and selects protected paths and named
+retained regression checks. Keep the printed plan digest in caller-controlled
+task state. After the normal candidate check, run `ib guard check --evidence
+CANDIDATE_EVIDENCE --plan PLAN_JSON --plan-sha256 CALLER_RETAINED_DIGEST` with the
+original trusted scope. Never derive the expected digest from candidate input.
+
+Missing requirements, protected edits, unresolved checks and changed check source
+remain separate diagnostics. Missing execution associations are visible gaps.
+Legitimate implementation edits can pass; changed assertion files need reassessment.
+The guard retains native rejection/pending review and grants no semantic approval.
+The declaration schema and worked example are in the project's
+[command reference](https://github.com/kbak/intentbond/blob/main/docs/change-guard.md).

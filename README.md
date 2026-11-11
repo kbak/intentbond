@@ -241,6 +241,11 @@ notes and deferred items against the exact checked source. See
 [development review](docs/development-review.md) for policy selection and resumable
 review.
 
+The optional [change guard](docs/change-guard.md) freezes the caller's accepted
+requirement changes, protected paths and retained regression checks. Before
+handoff, it flags dropped promises, protected edits and changed or unresolved
+checks while allowing implementation refactors that preserve those obligations.
+
 ## Documentation and contributing
 
 See the [documentation index](docs/README.md) for guides, examples, and the

@@ -107,5 +107,6 @@ process; this skill does not authorize publishing or acceptance.
 | Known IDs need context from saved evidence | [Explain linked context](references/development.md#saved-evidence-context) |
 | Selecting review paths or revision enforcement | [Review policy](references/development.md#review-policy) |
 | A larger/interrupted review needs a resumable worklist | [Review worklists](references/development.md#review-worklists) |
+| Caller requests protected paths or retained regression obligations | [Optional change guard](references/development.md#optional-change-guard); freeze the authorized declaration before edits and retain its digest outside candidate control |
 | Trusted scope enables `tests.execution_links` | [Execution links](references/execution-links.md); review declarations, runner associations and recorded outcomes together |
 | The checked change is committed or exported | [Verify exported source](references/development.md#verify-exported-source) |

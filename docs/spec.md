@@ -78,6 +78,7 @@ also identifies deferred areas and evidence limits. All IDs use
 | Evidence and review | evidence-verification, change-review, boundary-report, review-selection | Review fixtures without importing their illustrative requirements; producer trust remains external. |
 | Inspection and impact | explain-context, impact-report, draft-reporting | Draft/coverage/trace/review states stay separate; no review-time benefit measured. |
 | Development review | review-observations, review-worklist | Derived gaps and hubs, source-bound local progress; no additional approval authority. |
+| Change preservation | change-guard-policy, change-guard-preservation, change-guard-checks | Optional caller-pinned declaration; retained checks and protected paths, without semantic approval. |
 | Recovery | recovery-preservation, recovery-clean-start, recovery-citations, recovery-edits, recovery-lineage, recovery-draft-status, recovery-preflight | Citation validity does not prove faithful or complete extraction. |
 | Alloy | alloy-assertions, alloy-witness | Native bounds; remaining manifest/input-binding/error contracts need decomposition. |
 | SMT | smt-assumptions, smt-outcomes | Results concern the encoding, not automatic equivalence to application behavior. |
@@ -147,6 +148,100 @@ Needs: impl, utest
 
 Implementation: [worklist.py](../intentbond/worklist.py). Assertions: [test_worklist.py](../tests/test_worklist.py).
 Documentation: [development review](development-review.md).
+
+### Bind the optional change guard to caller intent and source
+`req~ib-change-guard-policy~1`
+
+Prepare an optional per-change declaration from the caller's explicit starting
+commit, trusted checking scope and retained OFT evidence. Reference existing
+requirement IDs/revisions and selected execution artifacts rather than copying
+requirement prose into another catalog. Freeze all selected baseline requirements
+as preserved except explicit changes/removals; omission cannot remove an obligation.
+Reject unknown references, overlapping actions and protected/support paths that
+select no captured baseline source. Store the plan outside source and evidence;
+checking requires its SHA-256 retained separately by the caller. Candidate edits
+cannot supply a replacement plan digest or adopt their own checking policy.
+
+Match the plan's baseline and policy, retained evidence and actual candidate
+source on each check. Diagnose changed baseline, changed policy and stale evidence
+separately. Reject altered plans and invalid evidence. Native passing evidence must
+still pass existing verification, and native rejection or pending review cannot
+be cleared by the guard. Ordinary check/verify remain unchanged without opt-in.
+
+Covers:
+- `intent~ib-review-decisions~1`
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest
+
+Implementation: [change_guard.py](../intentbond/change_guard.py).
+Assertions: [test_change_guard.py](../tests/test_change_guard.py).
+Documentation: [change guard](change-guard.md).
+
+Evidence limit: The caller must control the expected digest and policy. Local
+unsigned records do not authenticate a producer or prevent a caller from choosing
+a different declaration. Matching snapshots cannot detect transient edits restored
+between observations; environment and uncaptured dependencies remain outside them.
+
+### Preserve declared requirements and protected edit boundaries
+`req~ib-change-guard-preservation~1`
+
+Compare existing OFT declarations and complete captured file inventories against
+the frozen change declaration. A missing preserved or changed requirement is a
+failure; an explicitly authorized removal is reported separately. A preserved
+declaration's changed text, revision, Needs or links requires reassessment, without
+claiming its meaning is wrong. Pure location changes are permitted. Authorized
+additions must match their declared IDs/revisions; undeclared additions and unapplied
+removals remain review observations. Content, mode, deletion and new-child changes
+inside explicit protected paths fail preservation. Source refactoring elsewhere
+can pass when the retained checks pass and no other obligation is unresolved.
+
+Covers:
+- `intent~ib-preserve-purpose~1`
+- `intent~ib-understand-change~1`
+
+Needs: impl, utest
+
+Implementation: [change_guard.py](../intentbond/change_guard.py).
+Assertions: [test_change_guard.py](../tests/test_change_guard.py) pairs protected
+API edits and dropped declarations with allowed label changes, equivalent
+implementation refactoring and authorized requirement changes/removal.
+Documentation: [change guard](change-guard.md).
+
+Evidence limit: Protected paths are explicit literal files/directory prefixes,
+not an inferred semantic boundary. Uncaptured requirements and behavior outside
+selected assertions are not automatically discovered.
+
+### Retain regression obligations through candidate changes
+`req~ib-change-guard-checks~1`
+
+Each selected baseline execution artifact retains its exact identity/revision
+and must have passing source-bound execution observations in the candidate.
+Missing, skipped, unobserved, mixed, failed or ambiguous outcomes cannot pass the
+guard. A preserved requirement without a current execution link to a selected
+retained check is explicitly unchecked. A passing suite alone cannot fill this gap.
+Changes to a selected check's baseline/candidate source file or declared support
+paths require assertion reassessment even when the modified check passes. Reuse
+native OFT relationships and execution evidence; do not rerun tests in the guard
+or claim automatic assertion equivalence. Retain distinct requirement, path and
+check diagnostics with the plan, source, policy and evidence identities.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+- `intent~ib-preserve-purpose~1`
+
+Needs: impl, utest
+
+Implementation: [change_guard.py](../intentbond/change_guard.py).
+Assertions: [test_change_guard.py](../tests/test_change_guard.py) includes an
+off-by-one expiry regression, a weakened boundary assertion that passes, skipped
+and removed checks, missing associations and a changed test producer.
+Documentation: [change guard](change-guard.md).
+
+Evidence limit: Whole selected files are checked conservatively; harmless edits
+to these files still need reassessment. Support paths are caller-selected, not
+an exhaustive dependency analysis. Passing observations establish neither complete
+case enumeration nor semantic adequacy.
 
 ### Bind optional assurance to a change and trusted policy
 `req~ib-assurance-context~1`

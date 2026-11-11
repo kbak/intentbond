@@ -5,7 +5,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from . import __version__, alloy, chc, smt, worklist
+from . import __version__, alloy, change_guard, chc, smt, worklist
 from .check_output import follow_test_log, render_check
 from .common import CheckError
 from .evidence import EXIT_CODES
@@ -114,6 +114,28 @@ def parser():
     )
     impacting.add_argument("--oft-jar", type=Path, default=default_jar())
     impacting.add_argument("--java", default="java")
+    guarding = commands.add_parser("guard", help="Check declared requirement and edit preservation")
+    guard_commands = guarding.add_subparsers(dest="guard_action", required=True)
+    for verb in ("prepare", "check"):
+        command = guard_commands.add_parser(verb)
+        command.add_argument("--repo", type=Path, default=Path.cwd())
+        command.add_argument("--scope", type=Path, help="Original caller-trusted checking scope")
+        command.add_argument("--evidence", type=Path, required=True)
+        command.add_argument("--oft-jar", type=Path, default=default_jar())
+        command.add_argument("--java", default="java")
+        command.add_argument("--format", choices=("text", "json"), default="text")
+        if verb == "prepare":
+            command.add_argument("--base", required=True, help="Caller-selected starting commit")
+            command.add_argument("--declaration", type=Path, required=True)
+            command.add_argument(
+                "--out", type=Path, required=True, help="New directory outside source/evidence"
+            )
+        else:
+            command.add_argument("--plan", type=Path, required=True)
+            command.add_argument(
+                "--plan-sha256", required=True, help="Digest retained by the caller at prepare time"
+            )
+            command.add_argument("--candidate", default="worktree")
     explaining = commands.add_parser("explain", help="Explain OFT items using saved check evidence")
     explaining.add_argument(
         "identifiers", nargs="+", help="Complete OFT item IDs, including revisions"
@@ -290,6 +312,35 @@ def main(argv=None):
             )
             print(f"{result['status']}: {args.out.resolve() / 'assessment.json'}")
             return assessment_codes[result["status"]]
+        if args.action == "guard":
+            if args.guard_action == "prepare":
+                result = change_guard.prepare(
+                    args.evidence,
+                    args.declaration,
+                    args.out,
+                    args.repo,
+                    args.base,
+                    args.oft_jar,
+                    args.java,
+                    args.scope,
+                )
+            else:
+                result = change_guard.check(
+                    args.evidence,
+                    args.plan,
+                    args.plan_sha256,
+                    args.repo,
+                    args.oft_jar,
+                    args.java,
+                    args.scope,
+                    args.candidate,
+                )
+            print(
+                json.dumps(result, indent=2)
+                if args.format == "json"
+                else change_guard.render(result)
+            )
+            return 0 if args.guard_action == "prepare" else EXIT_CODES[result["status"]]
         if args.action == "impact":
             result = impact(args.evidence, args.oft_jar, args.java)
             print(

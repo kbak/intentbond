@@ -20,6 +20,8 @@ scope, or check-evidence semantics below.
 | `ib verify` | `--evidence` | Matches saved evidence to the selected scope, base, and candidate. |
 | `ib explain` | Complete OFT item IDs and `--evidence` | Explains selected items from the retained OFT graph and check evidence. |
 | `ib impact` | `--evidence` | Compares retained declarations, links, and source-change categories; see [requirement evolution](requirement-granularity.md). |
+| `ib guard prepare` | `--base`, `--evidence`, `--declaration`, `--out` | Freezes caller-declared requirement changes, protected paths and retained checks outside source/evidence. |
+| `ib guard check` | `--evidence`, `--plan`, `--plan-sha256` | Matches source/policy and checks preservation; retains native failure or pending review. |
 | `ib recover` | None; defaults to current clean repository at HEAD | Saves original source and prepares records for documenting existing requirements. `--isolated` creates a separate draft. No agent or tests run. |
 | `ib recover-check` | None for an active in-place recovery; `--recovery` for an isolated bundle | Checks proposed documentation, citations, links, and existing tests; review is still required. |
 
@@ -30,6 +32,10 @@ rejects it even with `--allow-pending-review`.
 The command name `recover` refers to reconstructing requirements from existing
 sources. See [add traceability to an existing project](recovery.md) for that
 workflow and its record format.
+
+The opt-in [change guard](change-guard.md) defines its declaration/plan schema 1,
+caller-held digest and source-bound diagnostics. It consumes existing check
+evidence without changing check/verify defaults or granting semantic approval.
 
 ### Optional formal commands
 
