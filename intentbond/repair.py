@@ -1,10 +1,12 @@
 """Opt-in, caller-adapted repair in an isolated Git copy; never an approval service."""
 
 import ast
+import io
 import json
 import sys
 import tempfile
 import time
+import tokenize
 from pathlib import Path
 
 from .change_guard import IDENTIFIER
@@ -191,7 +193,48 @@ def outside_symbol(text, symbol):
     lines = data.splitlines(keepends=True)
     first, last = tree.body[0], tree.body[-1]
     start = sum(map(len, lines[: first.lineno - 1])) + first.col_offset
-    end = sum(map(len, lines[: last.end_lineno - 1])) + last.end_col_offset
+    # The first logical newline after def ends either the header (a block
+    # suite) or the inline suite. Tokenization handles multiline signatures,
+    # annotations and decorators without guessing which colon opens the body.
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    header = next(
+        t
+        for t in tokenize.generate_tokens(io.StringIO(normalized).readline)
+        if t.type == tokenize.NEWLINE and t.start[0] >= tree.lineno
+    )
+
+    def indentation(line):
+        prefix = line[: len(line) - len(line.lstrip(b" \t\f"))]
+        return len(prefix.split(b"\f")[-1].expandtabs(8))
+
+    def blank(line):
+        return not line.strip(b" \t\f\r\n")
+
+    level = indentation(lines[tree.lineno - 1])
+
+    def body_comment(line):
+        return line.lstrip(b" \t\f").startswith(b"#") and indentation(line) > level
+
+    end_line = last.end_lineno - 1
+    if header.start[0] < first.lineno:
+        start_line = header.end[0]
+        # Comments at the enclosing indentation remain protected, even though
+        # Python ignores their indentation while looking for the first statement.
+        for row in range(start_line, first.lineno - 1):
+            line = lines[row]
+            if not blank(line) and not line.lstrip(b" \t\f").startswith(b"#"):
+                break
+            if not blank(line) and not body_comment(line):
+                start_line = row + 1
+        start = sum(map(len, lines[:start_line]))
+        for row in range(end_line + 1, len(lines)):
+            if body_comment(lines[row]):
+                end_line = row
+            elif not blank(lines[row]):
+                break
+    # Include inline/trailing body comments, but retain the final physical
+    # newline and unanchored separator blank lines outside the body.
+    end = sum(map(len, lines[:end_line])) + len(lines[end_line].rstrip(b"\r\n"))
     return data[:start] + b"<repair-body>" + data[end:]
 
 

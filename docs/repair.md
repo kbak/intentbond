@@ -47,6 +47,18 @@ Edit and regression paths are literal repository-relative paths. Select one
 function per editable file; `Service.batch` selects a method. Editable files
 must be traced inputs outside specification, test and protected paths.
 Signatures, decorators and bytes outside the function body are immutable.
+For a block body, the editable span starts after the header's logical newline
+and includes leading blank lines and indented comments, statements, and trailing
+indented comments. Comment indentation must be deeper than the selected function's
+indentation; an enclosing-level comment before the first statement stays protected.
+Trailing comments stop at the first enclosing-level comment or following code.
+Blank lines before a trailing body comment belong to the body; separator blank
+lines after the last body statement/comment and its final newline stay protected.
+For an inline body, only the statements and their same-line trailing comment are
+editable. Header comments, parameter comments and the selected function's own
+decorators remain protected, including for async functions and methods. Source
+outside the span is compared as UTF-8 bytes, without stripping comments or
+normalizing source formatting.
 This syntactic boundary alone cannot prevent unwanted behavior inside a function.
 
 Regression test and data paths must be new selected test inputs. The links path

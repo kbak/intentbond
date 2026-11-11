@@ -1099,5 +1099,10 @@ Needs: impl, utest
 Design and observable boundary details: [Bounded repair](repair.md).
 Assertions: [repair tests](../tests/test_repair.py), including legitimate alternative
 implementations, a second-round adversarial failure, stale authority, unknown
-labels, collateral writes and exhausted budgets. Adapter correctness and OS
-isolation are caller assumptions, not properties established by the loop.
+labels, collateral writes and exhausted budgets;
+[body-boundary regressions](../tests/test_repair_boundaries.py) retain a real
+commented reservation proposal and check permitted body comments against protected
+signature, decorator, enclosing-comment and other-function bytes across sync/async
+functions, methods, multiline headers, Unicode, tabs and physical newline forms.
+Adapter correctness and OS isolation are caller assumptions, not properties
+established by the loop.
