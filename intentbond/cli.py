@@ -63,6 +63,22 @@ def parser():
     )
     root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="action", required=True)
+    repairing = commands.add_parser(
+        "repair", help="Run an opt-in caller-adapted repair in a new copy"
+    )
+    repair_actions = repairing.add_subparsers(dest="repair_action", required=True)
+    repair_run = repair_actions.add_parser(
+        "run", help="Check, constrain and retain bounded repairs"
+    )
+    repair_run.add_argument("--repo", type=Path, default=Path.cwd())
+    repair_run.add_argument("--scope", type=Path)
+    repair_run.add_argument("--plan", type=Path, required=True)
+    repair_run.add_argument("--plan-sha256", required=True)
+    repair_run.add_argument("--policy", type=Path, required=True)
+    repair_run.add_argument("--policy-sha256", required=True)
+    repair_run.add_argument("--out", type=Path, required=True)
+    repair_run.add_argument("--oft-jar", type=Path, default=default_jar())
+    repair_run.add_argument("--java", default="java")
     assessing = commands.add_parser(
         "assess", help="Assess existing evidence and review without rerunning tests"
     )
@@ -296,6 +312,24 @@ def parser():
 def main(argv=None):
     args = parser().parse_args(argv)
     try:
+        if args.action == "repair":
+            from .repair import repair
+
+            result = repair(
+                args.repo,
+                args.scope,
+                args.plan,
+                args.plan_sha256,
+                args.policy,
+                args.policy_sha256,
+                args.out,
+                args.oft_jar,
+                args.java,
+            )
+            print(json.dumps(result, indent=2))
+            return {"passed": 0, "review_required": 4, "rejected": 1, "unresolved": 5}[
+                result["status"]
+            ]
         if args.action == "assess":
             from .assurance import EXIT_CODES as assessment_codes
             from .assurance import assess_files

@@ -1023,3 +1023,81 @@ Covers:
 - `intent~ib-preserve-purpose~1`
 
 Needs: impl, utest
+
+### Pin optional repair authority to accepted requirements
+`req~ib-repair-policy~1`
+
+Only an explicit repair invocation enables repair. Require caller-pinned external
+guard and repair policies, the same trusted scope and baseline, preserved
+requirement references and selected retained checks. Bind declared adapter and
+reference inputs by digest and recheck policy/source agreement between phases.
+Reject undeclared authority. Ordinary check and verify behavior remains unchanged.
+
+Covers:
+- `intent~ib-preserve-purpose~1`
+
+Needs: impl, utest
+
+### Constrain local repair writes
+`req~ib-repair-boundaries~1`
+
+Apply proposals only in a new copy, to declared Python function bodies associated
+with failed requirements. Preserve signatures, decorators and all bytes outside
+those bodies. Reject specification, old-test, protected-file and undeclared-path
+edits. Keep the original source unchanged. Legal body refactors remain eligible;
+syntactic locality does not establish semantic noninterference.
+
+Covers:
+- `intent~ib-preserve-purpose~1`
+
+Needs: impl, utest
+
+### Keep counterexample interpretation explicit
+`req~ib-repair-cases~1`
+
+Require nonempty attributed cases, coverage of selected requirements and positive
+controls. Each case records confirmed labels, pinned reference provenance and one
+or more accepted JSON outcomes. Duplicate IDs, unknown/conflicting labels,
+unavailable checks and incomplete observations cannot pass. Candidate exceptions
+are failures. Normalization and reference correctness remain caller obligations;
+finite cases do not prove the maintained requirement.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest
+
+### Retain regressions and preservation checks across repairs
+`req~ib-repair-regressions~1`
+
+Retain every initial and adversarial case in the candidate's new regression data.
+Install one caller-supplied scaffold with additive execution links and keep it
+immutable across repair rounds. Recheck all cases and selected old checks after
+each proposal. Completion requires passing native execution evidence for every
+declared new regression identity. Existing tests and requirements are preserved.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest
+
+### Bound repair and preserve native review decisions
+`req~ib-repair-loop~1`
+
+Allow at most two repairs and one adversarial generation pass, with a shared
+command time budget of at most 600 seconds and at most 1000 cases. Unknowns and
+timeouts remain unresolved; exhausted repairs and preservation violations reject.
+Completion requires native checks and source/evidence agreement while retaining
+any pending semantic review. Save proposals, cases, logs, partial/final source
+and native evidence outside the original repository; grant no approval or proof.
+
+Covers:
+- `intent~ib-review-decisions~1`
+
+Needs: impl, utest
+
+Design and observable boundary details: [Bounded repair](repair.md).
+Assertions: [repair tests](../tests/test_repair.py), including legitimate alternative
+implementations, a second-round adversarial failure, stale authority, unknown
+labels, collateral writes and exhausted budgets. Adapter correctness and OS
+isolation are caller assumptions, not properties established by the loop.

@@ -8,6 +8,10 @@ It checks links across Git versions, runs your tests, and saves results tied to
 the source checked. Optional Alloy and Z3 checks add formal verification for
 selected properties.
 
+An opt-in [bounded repair loop](docs/repair.md) can retain counterexamples,
+constrain proposed Python edits and recheck preserved requirements. Callers supply
+the adapter and reference checks; ordinary checking stays unchanged.
+
 For the motivation and a worked example, see
 [Proving the Wrong Thing, Faster](docs/presentations/proving-the-wrong-thing-faster/),
 a 12-minute presentation on keeping intent, specifications, code, and evidence

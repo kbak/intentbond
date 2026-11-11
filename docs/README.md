@@ -19,6 +19,7 @@ Start with the [README](../README.md) for installation and a first check.
 - [Requirement granularity](requirement-granularity.md) — choose IDs and inspect change impact.
 - [Development review](development-review.md) — select policy, inspect gaps/hubs and resume source-bound review.
 - [Change guard](change-guard.md) — preserve requirements, protected files and retained regression checks during edits.
+- [Bounded repair](repair.md) — opt-in counterexamples, local repairs and retained regressions.
 
 ## Reference
 

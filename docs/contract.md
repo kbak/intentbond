@@ -117,6 +117,11 @@ correctness. Use `ib verify` to match current source.
 
 ### Check and verify inputs
 
+The separate opt-in `ib repair run` command is specified in
+[Bounded repair](repair.md), including its caller-pinned policy, adapter protocol
+and exit codes. It uses ordinary native checks and verification in a new copy.
+It does not add repair behavior to `check` or `verify` or clear review gates.
+
 For both `check` and `verify`:
 
 - `--repo` defaults to the repository containing the current directory, including

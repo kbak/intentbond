@@ -82,3 +82,19 @@ Legitimate implementation edits can pass; changed assertion files need reassessm
 The guard retains native rejection/pending review and grants no semantic approval.
 The declaration schema and worked example are in the project's
 [command reference](https://github.com/kbak/intentbond/blob/main/docs/change-guard.md).
+
+## Optional bounded repair
+
+When the caller requests a repair loop, `ib repair run` consumes the accepted
+guard plan and an independently pinned repair policy. Supply a trusted external
+adapter for attributed cases, reference checks, observations, regression tests
+and local proposals. Keep those inputs outside candidate source and use the
+original trusted checking scope. The first profile permits selected Python
+function bodies, up to two repairs and one adversarial pass under a shared budget.
+
+Review `result.json`, retained counterexamples, the complete candidate diff,
+native preservation checks and source verification before applying the output
+copy. Status 4 keeps semantic review pending; status 5 means unresolved evidence.
+Never turn either into approval. Ordinary development does not invoke repair
+automatically. The policy, protocol and trust limits are in the
+[repair guide](https://github.com/kbak/intentbond/blob/main/docs/repair.md).
