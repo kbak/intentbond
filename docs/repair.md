@@ -173,6 +173,13 @@ the worktree itself.
 
 ## Completion and retained evidence
 
+Adapter and reference input pins are checked by streaming their complete contents
+through SHA-256 at every existing verification boundary, including before and after
+each external command. File size and timestamps do not substitute for content
+verification. This bounds hashing memory for large runner binaries; it does not
+cache digests, omit inputs or change the caller's responsibility for trusted
+adapters and execution isolation.
+
 The run checks the original candidate and baseline preservation, generates cases,
 installs one immutable regression scaffold and retains all cases in its data file.
 Each cycle observes every accumulated case and reruns native checks. Old selected

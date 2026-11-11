@@ -3,6 +3,7 @@
 import contextlib
 import copy
 import io
+import os
 import subprocess
 import sys
 import tempfile
@@ -444,6 +445,62 @@ class RepairWorkflowTests(unittest.TestCase):
                     session.pins()
             finally:
                 path.write_bytes(saved)
+
+    def test_input_bytes_are_rechecked_before_and_after_commands(self):
+        # [utest->req~ib-repair-policy~1]
+        _, out = self.run_repair("unknown")
+        policy_path = out.parent / "policy.json"
+        value = read_json(policy_path)
+        reference, command_input = out.parent / "reference.bin", out.parent / "command.bin"
+        reference.write_bytes(b"reference" * 100_000)
+        command_input.write_bytes(b"")
+        for path in (reference, command_input):
+            value["adapter"]["inputs"][str(path)] = digest(path.read_bytes())
+        write_json(policy_path, value)
+        session = Session(
+            self.repo,
+            self.scope,
+            Path(self.guard["plan"]),
+            self.guard["plan_sha256"],
+            policy_path,
+            digest(policy_path.read_bytes()),
+            out.parent / "command-pins",
+            self.jar,
+            "java",
+        )
+        outcome = {"status": "passed", "exit_code": 0}
+        with patch("intentbond.repair.run", return_value=outcome) as command:
+            self.assertEqual(session.command(["trusted-command"], "unchanged"), outcome)
+            command.assert_called_once()
+        for path in (self.adapter, reference, command_input):
+            saved, metadata = path.read_bytes(), path.stat()
+
+            def tamper(*args, **kwargs):
+                # Large reference changes only at EOF; nonempty files retain size and mtime.
+                path.write_bytes(saved[:-1] + bytes([saved[-1] ^ 1]) if saved else b"x")
+                os.utime(path, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+                if saved:
+                    self.assertEqual(path.stat().st_size, metadata.st_size)
+                self.assertEqual(path.stat().st_mtime_ns, metadata.st_mtime_ns)
+                return outcome
+
+            try:
+                with self.subTest(path=path.name, boundary="before"):
+                    tamper()
+                    with patch("intentbond.repair.run") as command:
+                        with self.assertRaisesRegex(CheckError, "adapter_input_changed"):
+                            session.command(["trusted-command"], "before")
+                        command.assert_not_called()
+                path.write_bytes(saved)
+                with self.subTest(path=path.name, boundary="after"):
+                    with patch("intentbond.repair.run", side_effect=tamper) as command:
+                        with self.assertRaisesRegex(CheckError, "adapter_input_changed"):
+                            session.command(["trusted-command"], "after")
+                        command.assert_called_once()
+            finally:
+                path.write_bytes(saved)
+                os.utime(path, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+            session.pins()
 
 
 if __name__ == "__main__":

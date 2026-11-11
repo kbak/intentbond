@@ -7,6 +7,7 @@ import sys
 import tempfile
 import time
 import tokenize
+from hashlib import file_digest
 from pathlib import Path
 
 from .change_guard import IDENTIFIER
@@ -335,7 +336,10 @@ class Session:
                 "candidate_changed_outside_repair",
             )
         for path, sha in self.policy["adapter"]["inputs"].items():
-            require(digest(Path(path).read_bytes()) == sha, "adapter_input_changed: " + path)
+            # Rehash every byte at each boundary without allocating whole runner binaries.
+            with Path(path).open("rb") as source:
+                actual = file_digest(source, "sha256").hexdigest()
+            require(actual == sha, "adapter_input_changed: " + path)
         for path, sha in self.scaffold.items():
             require(
                 digest(safe_file(self.work, path).read_bytes()) == sha,
