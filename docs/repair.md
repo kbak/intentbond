@@ -13,6 +13,12 @@ counterexamples and deterministic demonstration actor. It uses this existing API
 and changes no default behavior. The example is application-specific and does not
 ship as a runtime adapter in the wheel.
 
+The example also includes a [caller-command agent bridge](../examples/async-lifecycle#use-a-coding-agent).
+It hands concrete failures to a coding agent in a separate workspace and submits
+the complete source delta through the same checks. Agent completion is distinct
+from accepted repair; partial commands and unsupported edits cannot pass. Model
+selection, provider accounting and OS isolation stay with the caller.
+
 The caller supplies a trusted external adapter for case generation, reference
 labels, observation, regression scaffolding and proposals. IntentBond owns the
 limits, source identities, edit boundaries, accumulated cases, preservation

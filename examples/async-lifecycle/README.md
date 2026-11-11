@@ -5,8 +5,10 @@ It catches a stale-response bug that 618 retained tests miss, adds 136 interleav
 lifecycle cases, and retains all 754 cases after a localized repair. It also
 accepts a different correct implementation using unique request tokens.
 
-The example uses a deterministic demonstration actor. It does not call a model,
-enable repair for ordinary commands, or provide an adapter for arbitrary apps.
+The offline demo uses a deterministic demonstration actor. The optional
+[coding-agent command](#use-a-coding-agent) replaces proposal production with a
+caller-supplied command. Neither enables repair for ordinary commands or provides
+an oracle for arbitrary apps.
 It is included in the source checkout and source distribution, not the runtime wheel.
 
 ## Run offline
@@ -127,3 +129,71 @@ unchanged. No recorded execution logs or machine-local evidence are shipped.
 Ordinary-plus-retention obtains the same detection power from identical tests.
 This example demonstrates retention and bounded repair orchestration, not a
 measured accuracy advantage over an ordinary coding model.
+
+## Use a coding agent
+
+`agent_demo.py` reuses this profile and its regression data with a coding agent.
+Like the qualified development runner, `agent_adapter.py` gives the agent a
+separate copy and converts its complete source delta into a proposal. Only
+proposal production changes; generation, both reference models, observation,
+regression scaffolding, body boundaries and native checks stay the same.
+
+Create a trusted configuration outside the run output. Commands are argument
+arrays, without shell interpolation. Use absolute paths and pin the wrapper and
+its relevant local dependencies; the runtime environment remains caller trusted.
+
+```json
+{
+  "command": ["/path/to/python", "-B", "/trusted/my_agent.py"],
+  "inputs": {"/trusted/my_agent.py": "REPLACE_WITH_SHA256"},
+  "seconds": 120
+}
+```
+
+The bridge appends two absolute paths, `request.json` and `response.json`, and
+runs the command with its current directory set to the agent workspace. The
+request contains `schema_version: 1`, `worktree`, a `prompt` file path, the original
+`source_sha256`, `round`, and `remaining_seconds`. The prompt includes concrete
+failures and the instruction to preserve all accepted requirements. The wrapper
+must pass this prompt to its coding agent, allow edits only in `worktree`, enforce
+its own model/token/tool allowances, and finish within the supplied wall budget.
+
+After a completed agent turn, the wrapper writes:
+
+```json
+{"status": "completed", "source_sha256": "COPY_FROM_REQUEST"}
+```
+
+Incomplete/refused turns must not claim completion. Additional usage fields may
+be retained in this response, but the portable bridge does not validate provider
+token accounting. Credentials stay in the wrapper's external environment; do not
+put them in configuration arguments, prompts or source files.
+
+```sh
+python -B /path/to/intentbond/examples/async-lifecycle/agent_demo.py \
+  --agent-config /trusted/agent.json \
+  --oft-jar /path/to/openfasttrace-4.9.0.jar \
+  --seconds 240 --out /tmp/async-agent-run-1
+```
+
+This starts the counter-reset fixture. `--variant original` and `--variant
+unique-token` are healthy controls that complete without invoking an agent.
+The shared repair budget covers at most two proposals plus the adversarial pass;
+the baseline/reference qualification happens before that budget. Choose a wrapper
+with an aggregate budget when provider usage must be bounded across both turns.
+The bridge caps each invocation by the remaining repair time and kills its process
+group after exit or timeout. A wrapper must not leave separately detached workers.
+
+Unexpected file changes are returned to the native guard, including requirement
+and old-test edits. Deletions, executable-mode changes and symbolic links cannot
+be represented by this text-proposal API and stop as unresolved. Only Git metadata,
+Python bytecode directories and the fixture's `test-results.xml` operational report
+are omitted from the delta. Partial, stale, malformed or failed command results
+cannot produce a successful proposal. An unchanged proposal remains rejected.
+
+Inspect `result.json`, `repair/repair-*/proposal.json` and
+`repair/adapter-*-propose/agent/` for prompts, command logs, responses, complete
+agent workspaces and deltas. Successful results normally exit 4 with
+`review_required`; exit 1 rejects and exit 5 remains unresolved. The original
+source is never an apply target. The command bridge is not an OS sandbox: arrange
+external isolation for agent tools and untrusted code, as in the offline demo.

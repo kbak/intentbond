@@ -8,11 +8,7 @@ import lifecycle
 from runtime import observe
 
 
-def main():
-    control, request, response = sys.argv[1:]
-    request = Path(request)
-    response = Path(response)
-    q = json.loads(request.read_text())
+def answer(q, control, request):
     result = {"source_sha256": q["source_sha256"]}
     if q["phase"] == "generate":
         result["cases"] = lifecycle.generate(q["stage"], control)
@@ -34,7 +30,14 @@ def main():
         result["proposal"] = lifecycle.proposal(Path(q["worktree"]), control)
     else:
         raise ValueError("unknown adapter phase")
-    response.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
+    return result
+
+
+def main():
+    control, request, response = sys.argv[1:]
+    request = Path(request)
+    result = answer(json.loads(request.read_text()), control, request)
+    Path(response).write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
 
 
 if __name__ == "__main__":

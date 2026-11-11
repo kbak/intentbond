@@ -1114,3 +1114,12 @@ qualification is checked by [example tests](../tests/test_async_lifecycle_exampl
 CI runs the full offline API demonstration from the source distribution against
 the installed wheel. The example's application contract is scoped to its fixture,
 not a new default product profile or a generic claim about async programs.
+
+Its optional caller-command bridge replaces only proposal production. It retains
+the complete agent source delta for boundary evaluation, rejects unrepresentable
+deletions/mode/link changes as unresolved, and requires a completed, source-matched
+command result. Wall time is bounded by the remaining repair budget; provider
+token/tool limits and OS isolation remain caller obligations. The
+[agent bridge regressions](../tests/test_agent_adapter_example.py) exercise copy
+isolation, unfiltered unwanted edits, input pins, failed/partial/stale responses
+and timeouts. See the [example command contract](../examples/async-lifecycle#use-a-coding-agent).
