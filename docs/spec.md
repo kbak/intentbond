@@ -1041,11 +1041,33 @@ Needs: impl, utest
 ### Constrain local repair writes
 `req~ib-repair-boundaries~1`
 
-Apply proposals only in a new copy, to declared Python function bodies associated
-with failed requirements. Preserve signatures, decorators and all bytes outside
-those bodies. Reject specification, old-test, protected-file and undeclared-path
+Apply proposals only in a new copy, to declared boundaries associated with failed
+requirements. The default boundary selects Python function bodies and preserves
+signatures, decorators and all bytes outside those bodies. Reject accepted
+specification, old-test, protected-file and undeclared-path
 edits. Keep the original source unchanged. Legal body refactors remain eligible;
 syntactic locality does not establish semantic noninterference.
+
+Covers:
+- `intent~ib-preserve-purpose~1`
+
+Needs: impl, utest
+
+### Opt in to structured Lean clause repair
+`req~ib-repair-lean-clauses~1`
+
+Only an explicit `lean-clauses-v1` boundary permits editing a JSON candidate's
+clause expressions. Select clauses by maintained requirement reference and allow
+changes only for the proposal's implicated targets within that selection. Require
+unique clause identities and nonempty expressions with unambiguous JSON fields. Preserve imports,
+helpers, clause identities/order and every other expression; JSON object key
+order and whitespace may vary. Preserve the ordinary path protections: accepted
+requirements, tests and protected inputs cannot become editable candidates.
+Rendering, signatures, Lean validation and independent acceptance/rejection
+checks remain caller-pinned adapter inputs. A local expression change is not a
+Lean proof or semantic approval. Missing/invalid candidates cannot pass repair;
+uncertain labels and unavailable checks retain the existing unresolved handling.
+No Lean installation or adapter is selected by default.
 
 Covers:
 - `intent~ib-preserve-purpose~1`

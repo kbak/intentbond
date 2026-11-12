@@ -2,8 +2,9 @@
 
 `ib repair run` adds counterexample search and local repair to a caller-pinned
 [change guard](change-guard.md). Ordinary `check`, `verify`, recovery and guard
-commands do not invoke it. This first profile supports Python function bodies,
-JSON cases and native JUnit execution links. The runtime selects no model service,
+commands do not invoke it. Boundaries support Python function bodies and explicitly
+selected structured Lean clauses, with JSON cases and native JUnit execution links.
+The runtime selects no model service,
 reference implementation or default repair adapter.
 
 For a runnable offline introduction, use the
@@ -84,6 +85,36 @@ decorators remain protected, including for async functions and methods. Source
 outside the span is compared as UTF-8 bytes, without stripping comments or
 normalizing source formatting.
 This syntactic boundary alone cannot prevent unwanted behavior inside a function.
+
+### Optional Lean clause boundary
+
+To repair a generated predicate candidate, replace the Python edit entry with:
+
+```json
+{"path": "candidate.json", "format": "lean-clauses-v1",
+ "requirements": ["req~successor~1"]}
+```
+
+The JSON candidate has exactly `imports`, `precond_aux`, `postcond_aux` (strings)
+and `clauses` (a nonempty array of objects with exactly `requirement` and `expr`).
+Each requirement is a unique full maintained reference; each expression is a
+nonempty string. Only expressions selected by both the boundary and the proposal's
+failed requirement targets may change. Imports, helpers, clause order/identities
+and other expressions stay identical. JSON whitespace and object key order may
+change; duplicate keys and malformed candidates are rejected.
+
+The candidate must be a `.json` traced input outside accepted specification,
+test and protected paths. Accepted natural-language requirements stay protected.
+Pin the signature, renderer, Lean checker and reference labels as external adapter
+inputs. The core checks structured locality; it does not parse Lean or establish
+predicate correctness. The adapter must check compilation and concrete acceptance
+and rejection, retain positive cases to detect overrestriction, and report errors,
+inconclusive proofs and unknown labels as unresolved observations. Retained tests
+must repeat those checks. No Lean toolchain, renderer or model service is bundled
+or automatically enabled; this boundary uses the same budgets, guard, regression
+retention, source verification and pending semantic review as Python repair.
+
+### Retained regressions
 
 Regression test and data paths must be new selected test inputs. The links path
 is an existing JSON object in the `intentbond.unittest_junit` mapping format.

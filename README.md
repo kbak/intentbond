@@ -9,7 +9,8 @@ the source checked. Optional Alloy and Z3 checks add formal verification for
 selected properties.
 
 An opt-in [bounded repair loop](docs/repair.md) can retain counterexamples,
-constrain proposed Python edits and recheck preserved requirements. Callers supply
+constrain proposed Python body or opt-in Lean clause edits and recheck preserved
+requirements. Callers supply
 the adapter and reference checks; ordinary checking stays unchanged.
 
 For the motivation and a worked example, see

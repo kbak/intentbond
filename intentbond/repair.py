@@ -12,7 +12,17 @@ from hashlib import file_digest
 from pathlib import Path
 
 from .change_guard import IDENTIFIER
-from .common import CheckError, canonical, digest, read_json, relative_path, run, within, write_json
+from .common import (
+    CheckError,
+    canonical,
+    digest,
+    parse_json,
+    read_json,
+    relative_path,
+    run,
+    within,
+    write_json,
+)
 from .config import load_baseline_scope, load_scope
 from .snapshot import repository, resolve_commit, snapshot
 
@@ -74,23 +84,31 @@ def policy(value, scope, plan):
     )
     require(plan["declaration"]["checks"], "Select retained checks in the guard declaration")
     edits = value["edits"]
-    require(isinstance(edits, list) and edits, "Declare Python function edit boundaries")
+    require(isinstance(edits, list) and edits, "Declare repair edit boundaries")
     paths = []
     for edit in edits:
-        require(
-            isinstance(edit, dict) and set(edit) == {"path", "symbol", "requirements"},
-            "Invalid repair boundary",
-        )
+        require(isinstance(edit, dict), "Invalid repair boundary")
+        # [impl->req~ib-repair-lean-clauses~1]
+        lean = edit.get("format") == "lean-clauses-v1"
+        fields = {"path", "requirements", "format" if lean else "symbol"}
+        require(set(edit) == fields, "Invalid repair boundary")
         paths.append(relative_path(edit["path"]))
+        require(within(edit["path"], scope["inputs"]), "Repair boundary must be a selected input")
+        if lean:
+            require(edit["path"].endswith(".json"), "Lean clauses require a JSON candidate")
+        else:
+            require(
+                edit["path"].endswith(".py")
+                and isinstance(edit["symbol"], str)
+                and all(p.isidentifier() for p in edit["symbol"].split(".")),
+                "Repair boundaries select named Python functions",
+            )
         require(
-            within(edit["path"], scope["inputs"])
-            and edit["path"].endswith(".py")
-            and isinstance(edit["symbol"], str)
-            and all(p.isidentifier() for p in edit["symbol"].split(".")),
-            "Repair boundaries select named Python functions",
-        )
-        require(
-            edit["requirements"] and set(edit["requirements"]) <= set(refs),
+            isinstance(edit["requirements"], list)
+            and edit["requirements"]
+            and all(isinstance(r, str) for r in edit["requirements"])
+            and len(edit["requirements"]) == len(set(edit["requirements"]))
+            and set(edit["requirements"]) <= set(refs),
             "Repair boundary must reference selected requirements",
         )
         require(
@@ -102,7 +120,7 @@ def policy(value, scope, plan):
             ),
             "Repair boundary overlaps a specification, test or protected path",
         )
-    require(len(paths) == len(set(paths)), "Select one function per editable file")
+    require(len(paths) == len(set(paths)), "Select one boundary per editable file")
     regression = value["regression"]
     require(
         isinstance(regression, dict)
@@ -278,6 +296,40 @@ def outside_symbol(text, symbol):
     # newline and unanchored separator blank lines outside the body.
     end = sum(map(len, lines[:end_line])) + len(lines[end_line].rstrip(b"\r\n"))
     return data[:start] + b"<repair-body>" + data[end:]
+
+
+# [impl->req~ib-repair-lean-clauses~1]
+def outside_lean_clauses(text, selected):
+    """Mask eligible expressions; Lean meaning remains the pinned checker's job."""
+    try:
+        value = parse_json(text)
+    except ValueError as exc:
+        raise CheckError("Invalid Lean clause JSON") from exc
+    require(
+        isinstance(value, dict)
+        and set(value) == {"imports", "precond_aux", "postcond_aux", "clauses"}
+        and all(isinstance(value[k], str) for k in ("imports", "precond_aux", "postcond_aux"))
+        and isinstance(value["clauses"], list)
+        and value["clauses"],
+        "Invalid Lean clause candidate",
+    )
+    seen = set()
+    for clause in value["clauses"]:
+        require(
+            isinstance(clause, dict)
+            and set(clause) == {"requirement", "expr"}
+            and isinstance(clause["requirement"], str)
+            and IDENTIFIER.fullmatch(clause["requirement"])
+            and clause["requirement"] not in seen
+            and isinstance(clause["expr"], str)
+            and clause["expr"].strip(),
+            "Invalid or duplicate Lean clause",
+        )
+        seen.add(clause["requirement"])
+        if clause["requirement"] in selected:
+            clause["expr"] = None
+    require(set(selected) <= seen, "Selected Lean clause is missing")
+    return value
 
 
 def safe_file(root, name):
@@ -675,12 +727,18 @@ class Session:
             for name, text in updates.items():
                 require(isinstance(text, str) and len(text) <= 100000, "Invalid proposed source")
                 old = safe_file(self.work, name).read_text(encoding="utf-8")
-                require(
-                    old != text
-                    and outside_symbol(old, allowed[name]["symbol"])
-                    == outside_symbol(text, allowed[name]["symbol"]),
-                    "repair_scope_violation",
-                )
+                edit = allowed[name]
+                # [impl->req~ib-repair-lean-clauses~1]
+                if edit.get("format") == "lean-clauses-v1":
+                    selected = set(edit["requirements"]) & set(proposal["targets"])
+                    same_boundary = outside_lean_clauses(old, selected) == outside_lean_clauses(
+                        text, selected
+                    )
+                else:
+                    same_boundary = outside_symbol(old, edit["symbol"]) == outside_symbol(
+                        text, edit["symbol"]
+                    )
+                require(old != text and same_boundary, "repair_scope_violation")
         except (CheckError, SyntaxError):
             self.reject("repair_scope_violation")
             return
@@ -790,6 +848,12 @@ class Session:
             self.command([*git, "reset", "--mixed", snap.commit], "git-index")
             require(identity(self.work)["sha256"] == self.original["sha256"], "source_copy_changed")
             self.expected_source = self.original["sha256"]
+            for edit in self.policy["edits"]:
+                if edit.get("format") == "lean-clauses-v1":
+                    outside_lean_clauses(
+                        safe_file(self.work, edit["path"]).read_text(encoding="utf-8"),
+                        edit["requirements"],
+                    )
             if not self.native("initial", regression=False):
                 self.reject("starting_native_checks_not_passing")
                 return self.result
