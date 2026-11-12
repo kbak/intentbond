@@ -1096,6 +1096,35 @@ Covers:
 
 Needs: impl, utest
 
+### Check requested-change completion separately from preservation
+`req~ib-repair-completion~1`
+
+An optional caller-pinned completion policy supplies an external request and
+checker. Recheck their complete pinned contents at command boundaries and bind
+each result to the exact candidate, request and checker policy. Missing, stale,
+malformed, failed-command or timed-out evidence cannot establish completion.
+A valid negative result supplies request-specific feedback to the existing local
+repair path under its unchanged time, attempt, preservation and edit limits.
+Recheck completion after source changes; acceptance also requires all native
+preservation, regression and source/evidence checks. Record task completion
+separately from native status and pending semantic review. Omission preserves
+existing repair behavior and result fields. Checker correctness and the mapping
+from request to checker are caller obligations; this is not natural-language
+understanding or semantic approval.
+
+Covers:
+- `intent~ib-preserve-purpose~1`
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest
+
+The [completion regressions](../tests/test_completion.py) exercise behaviorally
+correct no-op rejection and local repair, disabled behavior, source/request/checker
+binding, bad evidence and protected edits. The
+[portable maintenance checker](../examples/request_completion.py) covers the
+two explicitly selected reservation-staging and async-settlement requests;
+their existing behavioral suites remain required.
+
 Design and observable boundary details: [Bounded repair](repair.md).
 Assertions: [repair tests](../tests/test_repair.py), including legitimate alternative
 implementations, a second-round adversarial failure, stale authority, unknown

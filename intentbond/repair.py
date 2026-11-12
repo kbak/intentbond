@@ -48,7 +48,7 @@ def outside(path, repo):
 def policy(value, scope, plan):
     require(
         isinstance(value, dict)
-        and set(value)
+        and set(value) - {"completion"}
         == {"schema_version", "requirements", "edits", "adapter", "regression", "limits"}
         and type(value["schema_version"]) is int
         and value["schema_version"] == 1,
@@ -156,6 +156,41 @@ def policy(value, scope, plan):
     require(
         any(arg in adapter["inputs"] for arg in adapter["command"]), "Pin the adapter entry point"
     )
+    # [impl->req~ib-repair-completion~1]
+    if "completion" in value:
+        completion = value["completion"]
+        require(
+            isinstance(completion, dict) and set(completion) == {"request", "command", "inputs"},
+            "Invalid completion policy",
+        )
+        command, inputs = completion["command"], completion["inputs"]
+        require(
+            isinstance(command, list)
+            and command
+            and all(isinstance(arg, str) and arg for arg in command)
+            and Path(command[0]).is_absolute()
+            and isinstance(inputs, dict)
+            and inputs,
+            "Completion needs a pinned checker command",
+        )
+        require(
+            isinstance(completion["request"], str)
+            and completion["request"] in inputs
+            and any(arg in inputs for arg in command),
+            "Pin the completion request and checker entry point",
+        )
+        for name, sha in inputs.items():
+            require(
+                Path(name).is_absolute()
+                and isinstance(sha, str)
+                and len(sha) == 64
+                and all(c in "0123456789abcdef" for c in sha),
+                "Completion inputs require absolute paths and SHA-256",
+            )
+            require(
+                name not in adapter["inputs"] or adapter["inputs"][name] == sha,
+                "Conflicting completion and adapter pins",
+            )
     limits = value["limits"]
     require(
         isinstance(limits, dict) and set(limits) == {"seconds", "repairs", "cases"},
@@ -282,6 +317,7 @@ class Session:
             self.plan_path,
             self.policy_path,
             *map(Path, self.policy["adapter"]["inputs"]),
+            *map(Path, self.policy.get("completion", {}).get("inputs", {})),
         ):
             require(
                 not path.resolve().is_relative_to(self.out),
@@ -307,6 +343,8 @@ class Session:
             "original": self.original,
             "limitations": [LIMIT],
         }
+        if "completion" in self.policy:
+            self.result["completion"] = {"status": "not_checked"}
         write_json(self.out / "policy.json", self.policy)
         write_json(self.out / "guard-plan.json", self.plan)
         write_json(self.out / "scope.json", self.scope)
@@ -340,6 +378,11 @@ class Session:
             with Path(path).open("rb") as source:
                 actual = file_digest(source, "sha256").hexdigest()
             require(actual == sha, "adapter_input_changed: " + path)
+        for path, sha in self.policy.get("completion", {}).get("inputs", {}).items():
+            require(not Path(path).is_symlink(), "completion_input_symlink: " + path)
+            with Path(path).open("rb") as source:
+                actual = file_digest(source, "sha256").hexdigest()
+            require(actual == sha, "completion_input_changed: " + path)
         for path, sha in self.scaffold.items():
             require(
                 digest(safe_file(self.work, path).read_bytes()) == sha,
@@ -641,6 +684,80 @@ class Session:
     def reject(self, reason):
         self.result.update(status="rejected", loop_status="rejected", reason=reason)
 
+    # [impl->req~ib-repair-completion~1]
+    def completion(self, cycle):
+        """Check the requested change separately from retained behavioral cases."""
+        if "completion" not in self.policy:
+            return []
+        config = self.policy["completion"]
+        self.result["completion"] = {"status": "unresolved"}
+        self.pins()
+        before = identity(self.work)
+        task = Path(config["request"])
+        require(task.stat().st_size <= MAX_RESPONSE, "oversized_completion_request")
+        text = task.read_text(encoding="utf-8")
+        require(text.strip(), "empty_completion_request")
+        binding = {
+            "source_sha256": before["sha256"],
+            "request_sha256": config["inputs"][config["request"]],
+            "checker_sha256": digest(canonical(config)),
+        }
+        folder = self.out / f"completion-{cycle}"
+        folder.mkdir()
+        request, response = folder / "request.json", folder / "response.json"
+        self.result["completion"].update(binding, evidence=str(response))
+        write_json(
+            request,
+            {
+                "schema_version": 1,
+                **binding,
+                "worktree": str(self.work),
+                "request": str(task),
+                "remaining_seconds": self.remaining(),
+            },
+        )
+        self.command([*config["command"], str(request), str(response)], folder.name)
+        require(identity(self.work) == before, "completion_checker_modified_candidate")
+        require(
+            response.is_file()
+            and not response.is_symlink()
+            and response.stat().st_size <= MAX_RESPONSE,
+            "missing_or_oversized_completion_response",
+        )
+        answer = read_json(response)
+        json_value(answer)
+        require(
+            isinstance(answer, dict)
+            and set(answer) == {"schema_version", *binding, "status", "errors"}
+            and type(answer["schema_version"]) is int
+            and answer["schema_version"] == 1,
+            "invalid_completion_response",
+        )
+        require(all(answer[k] == v for k, v in binding.items()), "stale_completion_response")
+        errors = answer["errors"]
+        require(
+            answer["status"] in {"passed", "failed"}
+            and isinstance(errors, list)
+            and all(isinstance(e, str) and e.strip() for e in errors)
+            and bool(errors) == (answer["status"] == "failed"),
+            "unresolved_completion_response",
+        )
+        self.result["completion"].update(status=answer["status"], errors=errors)
+        if answer["status"] == "passed":
+            return []
+        return [
+            {
+                "case": {
+                    "id": "requested-change-completion",
+                    "kind": "requested_change",
+                    "requirements": self.policy["requirements"],
+                    "input": {"request": text, **binding},
+                    "accepted": ["passed"],
+                },
+                "observed": {"status": "failed", "errors": errors},
+            }
+        ]
+
     # [impl->req~ib-repair-loop~1]
     def execute(self):
         try:
@@ -673,6 +790,7 @@ class Session:
                 native_pass = self.native(f"cycle-{cycle}")
                 if self.result["loop_status"] == "rejected":
                     break
+                failures.extend(self.completion(cycle))
                 if failures:
                     if self.result["repairs"] >= self.policy["limits"]["repairs"]:
                         self.reject("repair_budget_exhausted")
@@ -732,6 +850,17 @@ class Session:
                 self.result["candidate"] = snapshot(
                     self.work, "worktree", self.out / "frozen"
                 ).identity()
+                completion = self.result.get("completion", {})
+                if (
+                    completion.get("status") == "passed"
+                    and completion.get("source_sha256") != self.result["candidate"]["sha256"]
+                ):
+                    completion.update(status="unresolved", reason="completion_candidate_changed")
+                    self.result.update(
+                        status="unresolved",
+                        loop_status="unresolved",
+                        reason="completion_candidate_changed",
+                    )
             self.result["original_unchanged"] = identity(self.repo) == self.original
             if not self.result["original_unchanged"]:
                 self.result.update(

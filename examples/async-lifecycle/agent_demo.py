@@ -16,7 +16,7 @@ from intentbond.oft import default_jar
 from intentbond.repair import repair
 
 
-def policy(config_path, seconds):
+def policy(config_path, seconds, completion=None):
     return bridge.policy(
         config_path,
         seconds,
@@ -30,10 +30,11 @@ def policy(config_path, seconds):
             }
         ],
         regression=REGRESSION,
+        completion=completion,
     )
 
 
-def run(out, config, jar, seconds=240, variant="counter-reset"):
+def run(out, config, jar, seconds=240, variant="counter-reset", completion=None):
     if not __debug__:
         raise CheckError("Qualification assertions require Python without -O")
     out, config = out.resolve(), config.resolve()
@@ -43,7 +44,7 @@ def run(out, config, jar, seconds=240, variant="counter-reset"):
         raise CheckError("Keep the agent configuration outside the output directory")
     if not 0 < seconds <= 600:
         raise CheckError("Use a repair budget between 0 and 600 seconds")
-    value = policy(config, seconds)
+    value = policy(config, seconds, completion)
     out.mkdir(parents=True, exist_ok=False)
     write_json(out / "references.json", qualify())
     base = baseline(out / "baseline", variant, jar)
@@ -67,13 +68,23 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--agent-config", type=Path, required=True)
+    parser.add_argument(
+        "--completion-config", type=Path, help="Pinned request/checker JSON (optional)"
+    )
     parser.add_argument("--oft-jar", type=Path, default=default_jar())
     parser.add_argument("--seconds", type=float, default=240)
     parser.add_argument(
         "--variant", choices=("original", "counter-reset", "unique-token"), default="counter-reset"
     )
     args = parser.parse_args()
-    result = run(args.out, args.agent_config, args.oft_jar, args.seconds, args.variant)
+    result = run(
+        args.out,
+        args.agent_config,
+        args.oft_jar,
+        args.seconds,
+        args.variant,
+        bridge.read(args.completion_config) if args.completion_config else None,
+    )
     print(
         json.dumps(
             {

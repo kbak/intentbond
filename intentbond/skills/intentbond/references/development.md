@@ -98,3 +98,10 @@ copy. Status 4 keeps semantic review pending; status 5 means unresolved evidence
 Never turn either into approval. Ordinary development does not invoke repair
 automatically. The policy, protocol and trust limits are in the
 [repair guide](https://github.com/kbak/intentbond/blob/main/docs/repair.md).
+
+For a new change request, preserved behavior alone may allow a no-op. The optional
+`completion` policy pins an external request and checker and records source-bound
+task completion separately. Valid negative feedback uses the same bounded repair
+path; missing or stale evidence cannot pass. Qualify the checker against legitimate
+alternatives and missed-request controls, and retain every native preservation and
+review gate. Omit the option to keep existing behavior.

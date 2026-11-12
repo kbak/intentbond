@@ -113,6 +113,75 @@ result = repair(
 )
 ```
 
+## Optional requested-change completion
+
+Preserved behavior alone does not establish that a new change request was done.
+Unchanged code may pass every retained test while ignoring a requested refactor.
+Add `completion` to the caller-pinned repair policy to check that request:
+
+```json
+{
+  "request": "/trusted/CHANGE.txt",
+  "command": ["/opt/venv/bin/python", "-B", "/trusted/check_completion.py"],
+  "inputs": {
+    "/trusted/CHANGE.txt": "REPLACE_WITH_SHA256",
+    "/trusted/check_completion.py": "REPLACE_WITH_SHA256"
+  }
+}
+```
+
+Pin the request, checker entry point and its dependencies outside candidate source
+and output. The request is nonempty UTF-8 text, at most 16 MiB. The checker command
+receives absolute request/response JSON paths, using the existing shared deadline.
+It must leave source and trusted inputs intact. No model, tool or token budget is
+added or reset; provider limits still belong to the caller's agent runner.
+
+The JSON request contains `schema_version: 1`, `worktree`, the text-file `request`
+path, `remaining_seconds`, and three bindings: `source_sha256`, `request_sha256`
+and `checker_sha256`. The last is the canonical digest of the entire completion
+policy, including command and input pins. Exit zero and write exactly:
+
+```json
+{
+  "schema_version": 1,
+  "source_sha256": "ECHO_REQUEST_VALUE",
+  "request_sha256": "ECHO_REQUEST_VALUE",
+  "checker_sha256": "ECHO_REQUEST_VALUE",
+  "status": "failed",
+  "errors": ["The requested synchronous settle helper is missing."]
+}
+```
+
+`passed` requires an empty error list; `failed` requires nonempty text diagnostics.
+A nonzero exit, timeout, missing/invalid output, unknown status or binding mismatch
+leaves the loop unresolved. A valid failed result produces a `requested_change`
+feedback entry for the existing proposal adapter, carrying the request text,
+bindings and diagnostics. Its targets remain the policy's preserved requirements
+and declared function boundaries. It is not a reference-labelled behavioral case
+and is not added to `cases.json` or substituted for retained regressions.
+Completion is rechecked every cycle, including after adversarial cases are
+installed, and must match the final source.
+
+`result.json` adds `completion` only when enabled: its status, bindings, diagnostics
+and saved response path remain separate from native status. A passed completion
+checker does not override preservation failure or semantic review. Initial
+retained-test failures still stop at `starting_native_checks_not_passing`.
+The caller must qualify the request-to-checker translation against missed requests
+and legitimate alternatives. Passing a finite checker is not proof that arbitrary
+user intent was satisfied.
+
+The shared example bridge accepts `completion=...` in `policy()`. Both profile
+`agent_demo.py` commands accept `--completion-config /trusted/completion.json`;
+their Python `run()` and `policy()` functions accept the same optional dictionary.
+Omitting it preserves previous behavior. The standalone
+[maintenance checker](../examples/request_completion.py) can be selected with
+`[PYTHON, "-B", CHECKER_PATH, "reservation"]` for explicit state staging with one
+Service, or `"async-lifecycle"` for the nested synchronous `settle` refactor.
+Supply a matching request and pin that script and request. Use the healthy
+`deep-copy`/`original` demo variants when starting from already-correct code.
+These are two concrete example requests, not a generic prose evaluator. Existing
+profile tests still establish the recorded behavioral preservation outcomes.
+
 ## Adapter protocol, version 1
 
 Every invocation appends absolute request and response JSON paths to

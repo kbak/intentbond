@@ -203,3 +203,14 @@ agent workspaces and deltas. Successful results normally exit 4 with
 `review_required`; exit 1 rejects and exit 5 remains unresolved. The original
 source is never an apply target. The command bridge is not an OS sandbox: arrange
 external isolation for agent tools and untrusted code, as in the offline demo.
+
+### Check completion of a new request
+
+For a maintenance request against working code, optionally pass
+`--completion-config /trusted/completion.json` to `agent_demo.py`, or supply
+`completion=...` to its Python API. This pins an external request and checker and
+feeds a missed request into the same bounded local repair path. All preservation
+checks still apply; native review remains separate. Omission keeps the existing
+behavior. See the [completion protocol](../../docs/repair.md#optional-requested-change-completion)
+for the shared checker covering the two example maintenance requests, policy
+fields, exact source binding and limits.

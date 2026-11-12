@@ -77,3 +77,14 @@ services, concurrency or crash recovery. The two references can share an omissio
 The reusable part is the command transport and repair orchestration, not an oracle
 for arbitrary applications. The example establishes no model-accuracy advantage;
 ordinary execution of the same retained tests has the same detection power.
+
+### Check completion of a new request
+
+For a maintenance request against working code, optionally pass
+`--completion-config /trusted/completion.json` to `agent_demo.py`, or supply
+`completion=...` to its Python API. This pins an external request and checker and
+feeds a missed request into the same bounded local repair path. All preservation
+checks still apply; native review remains separate. Omission keeps the existing
+behavior. See the [completion protocol](../../docs/repair.md#optional-requested-change-completion)
+for the shared checker covering the two example maintenance requests, policy
+fields, exact source binding and limits.

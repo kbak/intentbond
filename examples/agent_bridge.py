@@ -155,7 +155,7 @@ def propose(q, config_path, folder, *, instructions, report_path=None):
     }
 
 
-def policy(config_path, seconds, *, root, requirements, edits, regression):
+def policy(config_path, seconds, *, root, requirements, edits, regression, completion=None):
     """Pin both the trusted profile and this shared transport outside the candidate."""
     config = configuration(config_path)
     pins = {
@@ -167,7 +167,7 @@ def policy(config_path, seconds, *, root, requirements, edits, regression):
     pins[str(bridge)] = hashlib.sha256(bridge.read_bytes()).hexdigest()
     pins.update(config["inputs"])
     pins[str(config_path)] = hashlib.sha256(config_path.read_bytes()).hexdigest()
-    return {
+    value = {
         "schema_version": 1,
         "requirements": requirements,
         "edits": edits,
@@ -178,3 +178,6 @@ def policy(config_path, seconds, *, root, requirements, edits, regression):
         "regression": regression,
         "limits": {"seconds": seconds, "repairs": 2, "cases": 1000},
     }
+    if completion is not None:
+        value["completion"] = completion
+    return value
