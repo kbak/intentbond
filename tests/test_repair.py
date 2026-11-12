@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -18,7 +19,7 @@ from intentbond.change_guard import prepare
 from intentbond.cli import main, parser
 from intentbond.common import CheckError, digest, read_json, write_json
 from intentbond.oft import default_jar
-from intentbond.repair import Session, outside_symbol, policy, repair
+from intentbond.repair import Session, input_digest, outside_symbol, policy, repair
 from intentbond.runner import check
 
 REQ = "req~absolute-value~1"
@@ -501,6 +502,90 @@ class RepairWorkflowTests(unittest.TestCase):
                 path.write_bytes(saved)
                 os.utime(path, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
             session.pins()
+
+    def test_parallel_input_checks_wait_for_all_reads_and_keep_error_order(self):
+        # [utest->req~ib-repair-policy~1]
+        _, out = self.run_repair("unknown")
+        policy_path = out.parent / "policy.json"
+        value = read_json(policy_path)
+        first, second = out.parent / "first.bin", out.parent / "second.bin"
+        first.write_bytes(b"first")
+        second.write_bytes(b"second")
+        value["adapter"]["inputs"] = {
+            str(first): digest(first.read_bytes()),
+            str(second): digest(second.read_bytes()),
+            **value["adapter"]["inputs"],
+        }
+        write_json(policy_path, value)
+        session = Session(
+            self.repo,
+            self.scope,
+            Path(self.guard["plan"]),
+            self.guard["plan_sha256"],
+            policy_path,
+            digest(policy_path.read_bytes()),
+            out.parent / "parallel-pins",
+            self.jar,
+            "java",
+        )
+        second_finished = threading.Event()
+        finished = set()
+        lock = threading.Lock()
+        unavailable = False
+
+        def checked(path):
+            if path == str(first):
+                self.assertTrue(second_finished.wait(5), "second input did not finish")
+            try:
+                if unavailable and path == str(second):
+                    raise FileNotFoundError("second input unavailable")
+                result = input_digest(path)
+                with lock:
+                    finished.add(path)
+                return result
+            finally:
+                if path == str(second):
+                    second_finished.set()
+
+        outcome = {"status": "passed", "exit_code": 0}
+
+        def command(*args, **kwargs):
+            self.assertEqual(finished, set(value["adapter"]["inputs"]))
+            finished.clear()
+            second_finished.clear()
+            return outcome
+
+        with (
+            patch("intentbond.repair.input_digest", side_effect=checked) as hashing,
+            patch("intentbond.repair.run", side_effect=command) as run,
+        ):
+            self.assertEqual(session.command(["trusted-command"], "complete"), outcome)
+            self.assertEqual(finished, set(value["adapter"]["inputs"]))
+            self.assertEqual(hashing.call_count, 2 * len(finished))
+            run.assert_called_once()
+
+        unavailable = True
+        for changed in (True, False):
+            with self.subTest(first_changed=changed):
+                first.write_bytes(b"other" if changed else b"first")
+                second_finished.clear()
+                error = CheckError if changed else FileNotFoundError
+                message = "adapter_input_changed: .*first.bin" if changed else "second input"
+                with (
+                    patch("intentbond.repair.input_digest", side_effect=checked),
+                    patch("intentbond.repair.run") as run,
+                    self.assertRaisesRegex(error, message),
+                ):
+                    session.command(["trusted-command"], "invalid")
+                run.assert_not_called()
+
+        with (
+            patch("intentbond.repair.ThreadPoolExecutor", side_effect=RuntimeError("no worker")),
+            patch("intentbond.repair.run") as run,
+            self.assertRaisesRegex(CheckError, "adapter_input_hashing_failed"),
+        ):
+            session.command(["trusted-command"], "worker-unavailable")
+        run.assert_not_called()
 
 
 if __name__ == "__main__":

@@ -247,7 +247,9 @@ through SHA-256 at every existing verification boundary, including before and af
 each external command. File size and timestamps do not substitute for content
 verification. This bounds hashing memory for large runner binaries; it does not
 cache digests, omit inputs or change the caller's responsibility for trusted
-adapters and execution isolation.
+adapters and execution isolation. At most two adapter/reference files are hashed
+concurrently. Results and errors are checked in declared input order, and all
+pending reads finish before the check returns or an external command can start.
 
 The run checks the original candidate and baseline preservation, generates cases,
 installs one immutable regression scaffold and retains all cases in its data file.

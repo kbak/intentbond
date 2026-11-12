@@ -7,6 +7,7 @@ import sys
 import tempfile
 import time
 import tokenize
+from concurrent.futures import ThreadPoolExecutor
 from hashlib import file_digest
 from pathlib import Path
 
@@ -17,6 +18,11 @@ from .snapshot import repository, resolve_commit, snapshot
 
 LIMIT = "Finite caller-supplied checks, not proof, authenticated provenance, or semantic approval."
 MAX_RESPONSE = 16 * 1024 * 1024
+
+
+def input_digest(path):
+    with Path(path).open("rb") as source:
+        return file_digest(source, "sha256").hexdigest()
 
 
 def require(condition, message):
@@ -373,11 +379,15 @@ class Session:
                 identity(self.work)["sha256"] == self.expected_source,
                 "candidate_changed_outside_repair",
             )
-        for path, sha in self.policy["adapter"]["inputs"].items():
-            # Rehash every byte at each boundary without allocating whole runner binaries.
-            with Path(path).open("rb") as source:
-                actual = file_digest(source, "sha256").hexdigest()
-            require(actual == sha, "adapter_input_changed: " + path)
+        inputs = self.policy["adapter"]["inputs"]
+        # Rehash every byte at every boundary, with bounded parallel reads and no cache.
+        # map preserves input/error order; exiting the pool joins every pending read.
+        try:
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                for path, actual in zip(inputs, pool.map(input_digest, inputs)):
+                    require(actual == inputs[path], "adapter_input_changed: " + path)
+        except RuntimeError as exc:
+            raise CheckError("adapter_input_hashing_failed: " + str(exc)) from exc
         for path, sha in self.policy.get("completion", {}).get("inputs", {}).items():
             require(not Path(path).is_symlink(), "completion_input_symlink: " + path)
             with Path(path).open("rb") as source:
