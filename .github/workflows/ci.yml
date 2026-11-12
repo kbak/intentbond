@@ -58,6 +58,9 @@ jobs:
       - name: Qualify the opt-in async lifecycle example offline
         working-directory: ${{ runner.temp }}
         run: python -B "$RUNNER_TEMP/source/examples/async-lifecycle/demo.py" --out "$RUNNER_TEMP/async-lifecycle"
+      - name: Qualify the opt-in CLI ordering example offline
+        working-directory: ${{ runner.temp }}
+        run: python -B "$RUNNER_TEMP/source/examples/cli-ordering/demo.py" --out "$RUNNER_TEMP/cli-ordering"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
@@ -66,6 +69,7 @@ jobs:
             dist/
             ${{ runner.temp }}/tests.xml
             ${{ runner.temp }}/async-lifecycle/
+            ${{ runner.temp }}/cli-ordering/
 
   property-examples:
     runs-on: ubuntu-24.04

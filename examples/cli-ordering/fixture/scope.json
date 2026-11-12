@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "name": "d2-export-cli",
+  "inputs": [
+    "requirements.md",
+    "commands.py",
+    "compatibility.py",
+    "entrypoint.py",
+    "formatters.py",
+    "parser.py",
+    "tests",
+    "run_tests.py"
+  ],
+  "specification_paths": [
+    "requirements.md"
+  ],
+  "test_paths": [
+    "tests",
+    "run_tests.py"
+  ],
+  "required_coverage": {
+    "req": [
+      "impl",
+      "utest"
+    ]
+  },
+  "policy": {
+    "allow_skipped_tests": false
+  },
+  "tests": {
+    "format": "junit",
+    "command": [
+      "python3",
+      "run_tests.py"
+    ],
+    "report": "test-results.xml",
+    "timeout_seconds": 8,
+    "execution_links": {
+      "format": "junit-properties-v1",
+      "artifact_types": [
+        "utest"
+      ]
+    }
+  }
+}

@@ -194,3 +194,10 @@ class ReservationAgentAdapterExampleTests(AgentAdapterExampleTests):
     target = "service.py"
     authorized = "Service.batch"
     foreign = "Form.validate"
+
+
+class CliOrderingAgentAdapterExampleTests(AgentAdapterExampleTests):
+    example = EXAMPLE.parent / "cli-ordering"
+    target = "formatters.py"
+    authorized = "ordered"
+    foreign = "Form.validate"

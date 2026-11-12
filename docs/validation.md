@@ -64,6 +64,16 @@ API controls, ordinary-plus-retention parity and pending semantic review. It nee
 no model service, historical research directory or additional runtime dependency.
 See its README for the single command and finite coverage bounds.
 
+The [CLI ordering example](../examples/cli-ordering) has an equivalent offline CI
+command using the installed wheel and extracted example. It retains D3's 280
+cases and checks 22 controls: valid local repairs and formatting, an already-correct
+candidate, adversarial second-round repair, unwanted edits and unresolved results.
+It also verifies that reintroducing the original defect fails the retained tests.
+An extra-blank-line JSON control checks a rendering side effect from an otherwise
+local repair while retaining acceptance of legitimate pretty-printed JSON.
+Focused tests exercise changed requirements, conflicting/missing references and
+the same subprocess transport contract as the other two profiles.
+
 ## Build a release from clean source
 
 Build from the committed revision you intend to publish, using a fresh directory

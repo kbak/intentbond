@@ -1156,9 +1156,15 @@ and timeouts. See the [example command contract](../examples/async-lifecycle#use
 The [shared bridge](../examples/agent_bridge.py) also carries the
 [reservation profile](../examples/reservation). Profile instructions, reference
 phases, edit boundaries and operational report exclusions remain trusted inputs;
-the transport contains no application-specific requirements. Both profiles pin
+the transport contains no application-specific requirements. These profiles pin
 the shared implementation and forward unwanted edits for native evaluation.
 [Reservation regressions](../tests/test_reservation_example.py) preserve D4's
 case outcomes, reject rollback/history loss and accept two legal implementations.
-This is reuse across two qualified fixtures, not automatic oracle construction or
-a measured accuracy advantage over an ordinary agent.
+The [CLI ordering profile](../examples/cli-ordering) also uses this bridge with
+D3's insertion reference and separate grouping/invariant checks. Its
+[regressions](../tests/test_cli_ordering_example.py) retain 280 cases, expose the
+stable-order defect missed by five original tests, and accept legitimate JSON
+formatting. The standalone offline demo checks local repair, a second adversarial
+round, protected edits and incomplete responses. This is reuse across three
+qualified fixtures, not automatic oracle construction or a measured accuracy
+advantage over an ordinary agent.

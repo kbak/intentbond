@@ -1,0 +1,81 @@
+{
+  "source": "D3 finite CLI challenges and D2 insertion reference",
+  "cases": 280,
+  "semantic_sha256": "41ac32581cc61e4be1d1b8380ecc1ae96608f46ce60b0b4a4f0249bdbdf16954",
+  "requirements_sha256": "ea346670c59e821e2b1e57967debd196ec67903bd8d4a08d75e204bd0471460d",
+  "minimal_tie": [
+    {
+      "id": "initial-009",
+      "kind": "positive",
+      "input": {
+        "args": [],
+        "rows": [
+          {
+            "name": "same",
+            "qty": 2
+          },
+          {
+            "name": "same",
+            "qty": 1
+          }
+        ]
+      },
+      "requirements": [
+        "req~export-order~1"
+      ],
+      "accepted": [
+        "{\"code\":0,\"err\":\"\",\"out\":\"same\\t2\\nsame\\t1\\n\"}"
+      ]
+    },
+    {
+      "id": "initial-010",
+      "kind": "positive",
+      "input": {
+        "args": [
+          "--json"
+        ],
+        "rows": [
+          {
+            "name": "same",
+            "qty": 2
+          },
+          {
+            "name": "same",
+            "qty": 1
+          }
+        ]
+      },
+      "requirements": [
+        "req~export-order~1"
+      ],
+      "accepted": [
+        "{\"code\":0,\"err\":\"\",\"out\":[{\"name\":\"same\",\"qty\":2},{\"name\":\"same\",\"qty\":1}]}"
+      ]
+    },
+    {
+      "id": "initial-011",
+      "kind": "positive",
+      "input": {
+        "args": [
+          "--stream"
+        ],
+        "rows": [
+          {
+            "name": "same",
+            "qty": 2
+          },
+          {
+            "name": "same",
+            "qty": 1
+          }
+        ]
+      },
+      "requirements": [
+        "req~export-order~1"
+      ],
+      "accepted": [
+        "{\"code\":0,\"err\":\"\",\"out\":[{\"name\":\"same\",\"qty\":2},{\"name\":\"same\",\"qty\":1}]}"
+      ]
+    }
+  ]
+}

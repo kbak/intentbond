@@ -24,6 +24,12 @@ idempotency checks. Each trusted profile supplies its own instructions, referenc
 regression scaffold, edit boundary and operational report exclusion. Both the
 bridge and profile are pinned; neither is selected by candidate output.
 
+The [CLI ordering example](../examples/cli-ordering) adds D3's stable-order case
+to the same bridge. Its original five tests miss an equal-name quantity tie
+breaker; independent insertion and grouping checks expose it. The offline demo
+retains 280 cases, tests a second repair after adversarial feedback, and accepts
+legal JSON formatting and alternative implementations within the local boundary.
+
 The caller supplies a trusted external adapter for case generation, reference
 labels, observation, regression scaffolding and proposals. IntentBond owns the
 limits, source identities, edit boundaries, accumulated cases, preservation
