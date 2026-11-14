@@ -22,6 +22,7 @@ scope, or check-evidence semantics below.
 | `ib impact` | `--evidence` | Compares retained declarations, links, and source-change categories; see [requirement evolution](requirement-granularity.md). |
 | `ib guard prepare` | `--base`, `--evidence`, `--declaration`, `--out` | Freezes caller-declared requirement changes, protected paths and retained checks outside source/evidence. |
 | `ib guard check` | `--evidence`, `--plan`, `--plan-sha256` | Matches source/policy and checks preservation; retains native failure or pending review. |
+| `ib compare-python` | `--policy`, `--policy-sha256`, `--out` | Compares preserved Python outputs with a pinned baseline and retains counterexamples. |
 | `ib recover` | None; defaults to current clean repository at HEAD | Saves original source and prepares records for documenting existing requirements. `--isolated` creates a separate draft. No agent or tests run. |
 | `ib recover-check` | None for an active in-place recovery; `--recovery` for an isolated bundle | Checks proposed documentation, citations, links, and existing tests; review is still required. |
 
@@ -36,6 +37,11 @@ workflow and its record format.
 The opt-in [change guard](change-guard.md) defines its declaration/plan schema 1,
 caller-held digest and source-bound diagnostics. It consumes existing check
 evidence without changing check/verify defaults or granting semantic approval.
+
+The opt-in [Python comparison](python-comparison.md) uses policy/report schema 1
+without changing native check/verify or repair semantics. Its exits are 0 for
+completed finite no-difference, 1 for a completed regression result, 2 for invalid
+inputs and 5 for unresolved execution. It grants no semantic approval.
 
 ### Optional formal commands
 

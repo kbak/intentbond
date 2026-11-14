@@ -79,6 +79,7 @@ also identifies deferred areas and evidence limits. All IDs use
 | Inspection and impact | explain-context, impact-report, draft-reporting | Draft/coverage/trace/review states stay separate; no review-time benefit measured. |
 | Development review | review-observations, review-worklist | Derived gaps and hubs, source-bound local progress; no additional approval authority. |
 | Change preservation | change-guard-policy, change-guard-preservation, change-guard-checks | Optional caller-pinned declaration; retained checks and protected paths, without semantic approval. |
+| Python behavioral comparison | python-comparison-policy, python-comparison-observations, python-comparison-retention | Optional preserved-output comparison against an accepted baseline; finite domains and trusted pure functions. |
 | Recovery | recovery-preservation, recovery-clean-start, recovery-citations, recovery-edits, recovery-lineage, recovery-draft-status, recovery-preflight | Citation validity does not prove faithful or complete extraction. |
 | Alloy | alloy-assertions, alloy-witness | Native bounds; remaining manifest/input-binding/error contracts need decomposition. |
 | SMT | smt-assumptions, smt-outcomes | Results concern the encoding, not automatic equivalence to application behavior. |
@@ -1023,6 +1024,73 @@ Covers:
 - `intent~ib-preserve-purpose~1`
 
 Needs: impl, utest
+
+### Declare optional Python preservation comparisons
+`req~ib-python-comparison-policy~1`
+
+Only an explicit Python comparison invocation enables behavioral comparison.
+Require a caller-pinned external policy selecting an immutable accepted baseline,
+Python functions, enum or bounded integer input domains, and maintained requirement
+references with preserved output projections. Generate the Cartesian product of
+documented boundary samples; reject invalid domains, ambiguous policy fields and
+oversized products rather than omit cases. Keep evidence outside source and
+ordinary check, verify, guard and repair defaults unchanged. A policy does not
+infer or approve maintained requirements.
+
+Covers:
+- `intent~ib-preserve-purpose~1`
+- `intent~ib-check-critical-rules~1`
+
+Needs: impl, utest
+
+### Compare reproducible preserved Python observations
+`req~ib-python-comparison-observations~1`
+
+For every scheduled input, observe both captured versions twice in fresh processes
+and compare only explicitly preserved projections with exact, type-sensitive JSON
+equality. Accept refactors and unselected changes when those projections agree.
+Attribute stable differences, missing candidate fields and candidate exceptions
+to selected observations without claiming causal blame. Baseline exceptions or
+missing fields, unsupported/unstable outcomes, source/policy drift and exhausted
+execution deadlines remain unresolved. No empty or partial run establishes no
+difference. Preserve original source, bind results to captured source and remove
+temporary execution copies even on failure.
+
+Assumptions: the caller accepts the baseline and domain; selected functions are
+synchronous, pure and deterministic. Fresh trusted processes are not a security
+sandbox, and repetition does not prove these assumptions. The result establishes
+neither new-request completion nor universal preservation or semantic approval.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+- `intent~ib-review-decisions~1`
+
+Needs: impl, utest
+
+### Retain and reduce Python regression counterexamples
+`req~ib-python-comparison-retention~1`
+
+Save discovered failing inputs before reduction. Under shared time and step limits,
+attempt smaller inputs and retain reductions only after reproducing the original
+implicated differences; make no global-minimality claim. Keep diagnostic cases if
+later execution is unresolved. Explicit replay requires caller-pinned cases and
+the same policy/baseline, validates domains and rechecks expectations against that
+baseline. Replay adds no generation/reduction and keeps retained cases even when
+the candidate passes. Empty, changed or stale replay evidence cannot establish
+successful comparison. Reports do not authorize automatic repair.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+- `intent~ib-preserve-purpose~1`
+
+Needs: impl, utest
+
+Implementation: [comparison](../intentbond/python_compare.py) and its
+[fresh-process observer](../intentbond/python_observer.py).
+Assertions: [comparison tests](../tests/test_python_compare.py), including expiry
+boundary regressions, legitimate refactors, authorized label changes, missing
+outputs, replay, reduction, unstable observations and integrity loss.
+Domain and limits: [Python comparison](python-comparison.md).
 
 ### Pin optional repair authority to accepted requirements
 `req~ib-repair-policy~1`

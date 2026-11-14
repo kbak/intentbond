@@ -63,6 +63,16 @@ def parser():
     )
     root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="action", required=True)
+    comparing = commands.add_parser(
+        "compare-python", help="Compare explicitly preserved Python behavior with a pinned baseline"
+    )
+    comparing.add_argument("--repo", type=Path, default=Path.cwd())
+    comparing.add_argument("--candidate", default="worktree")
+    comparing.add_argument("--policy", type=Path, required=True)
+    comparing.add_argument("--policy-sha256", required=True)
+    comparing.add_argument("--out", type=Path, required=True)
+    comparing.add_argument("--replay", type=Path)
+    comparing.add_argument("--replay-sha256")
     repairing = commands.add_parser(
         "repair", help="Run an opt-in caller-adapted repair in a new copy"
     )
@@ -312,6 +322,21 @@ def parser():
 def main(argv=None):
     args = parser().parse_args(argv)
     try:
+        if args.action == "compare-python":
+            from .python_compare import EXIT_CODES as comparison_codes
+            from .python_compare import compare_python
+
+            result = compare_python(
+                args.repo,
+                args.policy,
+                args.policy_sha256,
+                args.out,
+                args.candidate,
+                args.replay,
+                args.replay_sha256,
+            )
+            print(json.dumps(result, indent=2))
+            return comparison_codes[result["status"]]
         if args.action == "repair":
             from .repair import repair
 

@@ -83,6 +83,16 @@ The guard retains native rejection/pending review and grants no semantic approva
 The declaration schema and worked example are in the project's
 [command reference](https://github.com/kbak/intentbond/blob/main/docs/change-guard.md).
 
+## Optional Python behavior comparison
+
+For explicitly preserved synchronous Python behavior, the optional
+[baseline-to-candidate checker](https://github.com/kbak/intentbond/blob/main/docs/python-comparison.md) generates
+boundary inputs and retains differences without a custom generation adapter.
+Select the accepted baseline, valid domains and preserved output projections in
+a caller-pinned external policy. Unknown observations remain unresolved; finite
+agreement neither approves semantics nor establishes a newly requested change.
+The command leaves default checks and repair behavior unchanged.
+
 ## Optional bounded repair
 
 When the caller requests a repair loop, `ib repair run` consumes the accepted

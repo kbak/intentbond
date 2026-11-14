@@ -13,6 +13,11 @@ constrain proposed Python body or opt-in Lean clause edits and recheck preserved
 requirements. Callers supply
 the adapter and reference checks; ordinary checking stays unchanged.
 
+The optional [Python comparison checker](docs/python-comparison.md) generates
+boundary inputs and retains differences from an accepted baseline. Explicit input
+domains and preserved output fields let it accept authorized changes while finding
+regressions, without a custom generation adapter.
+
 For the motivation and a worked example, see
 [Proving the Wrong Thing, Faster](docs/presentations/proving-the-wrong-thing-faster/),
 a 12-minute presentation on keeping intent, specifications, code, and evidence

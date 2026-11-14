@@ -36,6 +36,12 @@ labels, observation, regression scaffolding and proposals. IntentBond owns the
 limits, source identities, edit boundaries, accumulated cases, preservation
 checks and final verification.
 
+For deterministic behavior that must remain unchanged, the optional
+[Python baseline-to-candidate checker](python-comparison.md) discovers and retains
+counterexamples from declared input domains without a custom generation adapter.
+Its baseline is a preservation oracle, not validation of newly requested behavior.
+It neither invokes repair automatically nor replaces the repair adapter.
+
 ## Prepare and run
 
 Prepare a guard from accepted baseline evidence. Preserve the repaired
