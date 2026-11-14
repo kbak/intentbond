@@ -24,6 +24,8 @@ from .common import (
     write_json,
 )
 from .config import load_baseline_scope, load_scope
+from .repair_feedback import FORMAT as FEEDBACK_FORMAT
+from .repair_feedback import validate_failures
 from .snapshot import repository, resolve_commit, snapshot
 
 LIMIT = "Finite caller-supplied checks, not proof, authenticated provenance, or semantic approval."
@@ -184,7 +186,9 @@ def policy(value, scope, plan):
     if "completion" in value:
         completion = value["completion"]
         require(
-            isinstance(completion, dict) and set(completion) == {"request", "command", "inputs"},
+            isinstance(completion, dict)
+            and set(completion) - {"format"} == {"request", "command", "inputs"}
+            and ("format" not in completion or completion["format"] == FEEDBACK_FORMAT),
             "Invalid completion policy",
         )
         command, inputs = completion["command"], completion["inputs"]
@@ -692,11 +696,23 @@ class Session:
 
     # [impl->req~ib-repair-boundaries~1]
     def propose(self, failures):
+        feedback = {}
+        # [impl->req~ib-repair-feedback~1]
+        if self.policy.get("completion", {}).get("format") == FEEDBACK_FORMAT:
+            feedback["preservation"] = {
+                "requirements": self.plan["declaration"]["requirements"]["preserve"],
+                "edits": self.policy["edits"],
+                "protected_paths": self.plan["declaration"]["protected_paths"],
+                "retained_checks": self.plan["declaration"]["checks"],
+                "regression_checks": self.policy["regression"]["checks"],
+                "semantic_approval": False,
+            }
         answer = self.adapter(
             "propose",
             failures=failures[:8],
             failure_count=len(failures),
             round=self.result["repairs"] + 1,
+            **feedback,
         )
         proposal = answer.get("proposal")
         require(proposal is not None, "no_in_scope_repair")
@@ -794,9 +810,11 @@ class Session:
         )
         answer = read_json(response)
         json_value(answer)
+        structured = config.get("format") == FEEDBACK_FORMAT
+        extra = {"failures"} if structured else set()
         require(
             isinstance(answer, dict)
-            and set(answer) == {"schema_version", *binding, "status", "errors"}
+            and set(answer) == {"schema_version", *binding, "status", "errors", *extra}
             and type(answer["schema_version"]) is int
             and answer["schema_version"] == 1,
             "invalid_completion_response",
@@ -810,9 +828,28 @@ class Session:
             and bool(errors) == (answer["status"] == "failed"),
             "unresolved_completion_response",
         )
+        # [impl->req~ib-repair-feedback~1]
+        if structured:
+            rows = validate_failures(answer["failures"], self.policy["requirements"])
+            require(bool(rows) == (answer["status"] == "failed"), "contradictory_feedback")
+            self.result["completion"]["failures"] = rows
         self.result["completion"].update(status=answer["status"], errors=errors)
         if answer["status"] == "passed":
             return []
+        if structured:
+            return [
+                {
+                    "case": {
+                        "id": "requested-change-" + row["id"],
+                        "kind": "requested_change",
+                        "requirements": row["requirements"],
+                        "input": {"request": text, **binding, "counterexample": row["input"]},
+                        "accepted": [row["expected"]],
+                    },
+                    "observed": row["observed"],
+                }
+                for row in rows
+            ]
         return [
             {
                 "case": {

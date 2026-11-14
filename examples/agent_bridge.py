@@ -76,13 +76,15 @@ def inventory(root, report_path=None):
 def prompt(q, instructions):
     if not isinstance(instructions, str) or not instructions.strip():
         raise ValueError("missing_profile_instructions")
+    feedback = {k: q[k] for k in ("requirements", "failure_count", "failures")}
+    if "preservation" in q:
+        feedback["preservation"] = q["preservation"]
     return (
         instructions + "\n\n"
         "Make changes only in this separate workspace. Do not commit, install dependencies, "
         "or write documentation/evidence into it. Your complete source delta is a proposal; "
         "IntentBond rechecks boundaries, behavior and retention before accepting it. "
-        "Native review_required is pending semantic review.\n\n"
-        + json.dumps({k: q[k] for k in ("requirements", "failure_count", "failures")}, indent=2)
+        "Native review_required is pending semantic review.\n\n" + json.dumps(feedback, indent=2)
     )
 
 

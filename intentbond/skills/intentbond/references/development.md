@@ -117,3 +117,11 @@ task completion separately. Valid negative feedback uses the same bounded repair
 path; missing or stale evidence cannot pass. Qualify the checker against legitimate
 alternatives and missed-request controls, and retain every native preservation and
 review gate. Omit the option to keep existing behavior.
+
+For structured expected/observed diagnostics, explicitly select completion format
+`counterexamples-v1`. It carries selected requirement attribution and preservation
+constraints through the same proposal bridge. Trusted checkers may convert a
+completed Python comparison with `intentbond.repair_feedback.python_comparison_failures`;
+retain independent request-acceptance checks and propagate unresolved comparisons.
+Neither feedback nor baseline agreement expands edit authority or proves a new
+request was satisfied. See the repair guide's structured failure handoff contract.

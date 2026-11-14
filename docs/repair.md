@@ -225,6 +225,79 @@ Supply a matching request and pin that script and request. Use the healthy
 These are two concrete example requests, not a generic prose evaluator. Existing
 profile tests still establish the recorded behavioral preservation outcomes.
 
+### Structured failure handoff
+
+Set `"format": "counterexamples-v1"` in the pinned `completion` configuration
+to carry concrete observations instead of only text errors. The checker keeps
+the same command, deadline and source/request/checker bindings. Its response adds
+`failures` to the existing fields:
+
+```json
+{
+  "schema_version": 1,
+  "source_sha256": "ECHO_REQUEST_VALUE",
+  "request_sha256": "ECHO_REQUEST_VALUE",
+  "checker_sha256": "ECHO_REQUEST_VALUE",
+  "status": "failed",
+  "errors": ["An annotation outage suppressed an available job log."],
+  "failures": [{
+    "id": "independent-log-retrieval",
+    "requirements": ["req~independent-evidence~1"],
+    "input": {"annotations": "unavailable", "job_log": "available"},
+    "expected": {"job_log_collected": true},
+    "observed": {"job_log_collected": false}
+  }]
+}
+```
+
+A passed result requires both `errors` and `failures` empty. A failed result
+requires both nonempty. Failure IDs must be distinct and requirements must be
+selected by the repair policy. All fields are finite JSON; at most 1,000 failures
+fit a response, which still has the existing size limit. Expected/observed values
+are diagnostics from the trusted checker, not a built-in equality oracle: the
+checker may allow several valid implementations or outcomes. Qualify those
+judgments independently.
+
+The loop forwards up to eight concrete failures with the full failure count,
+expected values in `case.accepted`, observations in `observed`, and inputs in
+`case.input.counterexample`. The source-bound response retains all failures.
+Proposal requests also carry `preservation`: preserved requirement references,
+declared edit boundaries, protected paths, retained and new regression check IDs,
+and `semantic_approval: false`. The shared caller-agent bridge includes this
+context in its prompt. These fields describe existing authority; they do not
+expand it. Python edits remain restricted to the declared function bodies.
+
+For a trusted Python checker, reuse the result conversion helper inside the
+pinned completion checker:
+
+```python
+from intentbond.repair_feedback import python_comparison_failures
+
+# result is returned by compare_python for this exact candidate and pinned policy.
+failures = python_comparison_failures(
+    result, source_sha256=request["source_sha256"],
+    policy_sha256=caller_retained_policy_digest,
+    requirements=selected_requirements,
+)
+# Combine with independently checked request-acceptance failures, using distinct IDs.
+# Write the bound completion response above. Propagate unresolved checks as errors;
+# never turn them into a passed response or a repairable failure.
+```
+
+The helper uses original observations to retain every discovered requirement's
+diagnostic. It requires complete, consistent results with source/policy identity
+and successful cleanup. It does not authenticate arbitrary saved JSON or rerun
+comparison. Keep comparison evidence and replay cases; baseline agreement only
+checks declared preservation, so newly requested behavior needs separate
+acceptance checks. Any checker subprocess and comparison must fit the existing
+remaining deadline. Partial agent runs, unknown provider usage and caller budgets
+remain the agent runner's responsibility; a correct-looking artifact is not a
+completed invocation.
+
+Omit `format` to keep the legacy completion response and proposal request unchanged.
+This option introduces no model backend, automatic ordinary-command repair,
+additional attempt, approval or retained-case oracle.
+
 ## Adapter protocol, version 1
 
 Every invocation appends absolute request and response JSON paths to

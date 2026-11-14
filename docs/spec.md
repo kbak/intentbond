@@ -1215,6 +1215,39 @@ binding, bad evidence and protected edits. The
 two explicitly selected reservation-staging and async-settlement requests;
 their existing behavioral suites remain required.
 
+### Carry structured checker failures into bounded repair
+`req~ib-repair-feedback~1`
+
+Only an explicit completion `counterexamples-v1` format enables structured
+feedback. Require source/request/checker-bound completed results with consistent
+status, diagnostics and failure lists. Each failure names selected maintained
+requirements, an input, expected behavior and its observation; reject ambiguous,
+duplicate, unmapped or nonfinite entries. Forward concrete failures and the
+caller's preservation constraints through the existing proposal path. A passing
+check requests no repair; unresolved evidence cannot trigger a proposal or pass.
+Keep attempt/time limits, edit boundaries, retained checks, final source matching
+and semantic review intact. Omitting the format preserves the legacy protocol.
+
+Provide a conversion helper for trusted Python comparison results. Require
+complete observations, successful cleanup and caller-retained source/policy
+identity; reject partial, unknown or inconsistent results. Preserve type-sensitive
+expected/observed values and requirement attribution. The helper neither
+authenticates saved reports nor establishes new behavior from baseline agreement.
+Request acceptance still needs a caller-qualified checker. Structured diagnostics
+are not new reference labels or a replacement for retained regression checks.
+
+Covers:
+- `intent~ib-preserve-purpose~1`
+- `intent~ib-trust-evidence~1`
+- `intent~ib-review-decisions~1`
+
+Needs: impl, utest
+
+Implementation: [feedback conversion](../intentbond/repair_feedback.py) and the
+[repair session](../intentbond/repair.py). Assertions:
+[structured feedback tests](../tests/test_repair_feedback.py) and
+[caller-agent transport](../tests/test_agent_adapter_example.py).
+
 Design and observable boundary details: [Bounded repair](repair.md).
 Assertions: [repair tests](../tests/test_repair.py), including legitimate alternative
 implementations, a second-round adversarial failure, stale authority, unknown

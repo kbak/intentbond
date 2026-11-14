@@ -113,6 +113,12 @@ keeps them even when the candidate passes. Empty replay sets are rejected; prior
 files remain unchanged. Reports can inform the explicit repair workflow, but this
 command neither applies repairs nor automatically installs a repair adapter.
 
+A trusted completion checker can convert a completed result with
+`intentbond.repair_feedback.python_comparison_failures` and the opt-in
+[structured repair handoff](repair.md#structured-failure-handoff). Supply
+caller-retained source and policy identities; unresolved comparisons must stop
+the check. Baseline preservation still needs separate checks for new behavior.
+
 Limits allow at most 1000 generated cases, 1000 reduction evaluations, 600 seconds
 shared execution time and 60 seconds per subprocess. Each evaluation makes four
 observations. Replay uses at most the original case-plus-reduction allowance.

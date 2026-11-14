@@ -18,6 +18,8 @@ assert Path.cwd() == root
 prompt = Path(q['prompt']).read_text()
 assert 'retained-example' in prompt
 assert authorized in prompt and foreign not in prompt
+if mode == 'structured':
+    assert 'protected_paths' in prompt and 'retained_checks' in prompt
 p = root/target
 p.write_text(p.read_text().replace('return False', 'return True'))
 if mode == 'collateral':
@@ -88,6 +90,11 @@ class AgentAdapterExampleTests(unittest.TestCase):
             "remaining_seconds": 10,
             "failures": [{"case": {"id": "retained-example", "requirements": ["req~example~1"]}}],
         }
+        if mode == "structured":
+            q["preservation"] = {
+                "protected_paths": ["requirements.md"],
+                "retained_checks": ["utest~example~1"],
+            }
         request, response = folder / "request.json", folder / "response.json"
         request.write_text(json.dumps(q))
         result = subprocess.run(
@@ -122,6 +129,12 @@ class AgentAdapterExampleTests(unittest.TestCase):
         )
         self.assertTrue((folder / "agent/prompt.txt").is_file())
         self.assertTrue((folder / "agent/execution.json").is_file())
+
+    def test_structured_preservation_reaches_the_caller_agent(self):
+        # [utest->req~ib-repair-feedback~1]
+        result, response, _ = self.run_adapter("structured")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(response.read_text())["proposal"]["targets"], ["req~example~1"])
 
     def test_collateral_and_dropped_requirement_edits_reach_the_guard(self):
         # [utest->req~ib-repair-boundaries~1]
