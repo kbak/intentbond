@@ -80,6 +80,7 @@ also identifies deferred areas and evidence limits. All IDs use
 | Development review | review-observations, review-worklist | Derived gaps and hubs, source-bound local progress; no additional approval authority. |
 | Change preservation | change-guard-policy, change-guard-preservation, change-guard-checks | Optional caller-pinned declaration; retained checks and protected paths, without semantic approval. |
 | Python behavioral comparison | python-comparison-policy, python-comparison-observations, python-comparison-retention | Optional preserved-output comparison against an accepted baseline; finite domains and trusted pure functions. |
+| Python validation test generation | validation-contract-generation, validation-contract-execution | Opt-in finite acceptance tests from caller-reviewed contracts; unsupported semantics refused, no automatic requirement inference or approval. |
 | Recovery | recovery-preservation, recovery-clean-start, recovery-citations, recovery-edits, recovery-lineage, recovery-draft-status, recovery-preflight | Citation validity does not prove faithful or complete extraction. |
 | Alloy | alloy-assertions, alloy-witness | Native bounds; remaining manifest/input-binding/error contracts need decomposition. |
 | SMT | smt-assumptions, smt-outcomes | Results concern the encoding, not automatic equivalence to application behavior. |
@@ -1091,6 +1092,54 @@ Assertions: [comparison tests](../tests/test_python_compare.py), including expir
 boundary regressions, legitimate refactors, authorized label changes, missing
 outputs, replay, reduction, unstable observations and integrity loss.
 Domain and limits: [Python comparison](python-comparison.md).
+
+### Generate finite tests from reviewed validation contracts
+`req~ib-validation-contract-generation~1`
+
+Only explicit library invocation generates Python validation tests. Require a
+caller-pinned contract declaring a maintained requirement reference, null semantics,
+normalized output, ValueError rejection and input-preservation policy. Support
+bounded integers and strings, booleans, closed objects, maps and optional defaults.
+Generate deterministic, reviewable type, boundary, omission, nesting and null-mix
+cases without importing candidate code or learning expectations from its output.
+Reject unknown or ambiguous semantics, invalid defaults, changed contract bytes
+and exhausted size/depth/node/traversal/case limits; return no truncated suite.
+Keep ordinary check, comparison, guard and repair defaults unchanged.
+
+Assumptions: callers review the translation from requirements and supply the
+accepted digest separately. A digest binds bytes, not approval. Finite generated
+cases neither prove correctness nor establish complete requirement extraction.
+
+Covers:
+- `intent~ib-check-critical-rules~1`
+- `intent~ib-preserve-purpose~1`
+
+Needs: impl, utest
+
+### Execute declared validation observations without expanding authority
+`req~ib-validation-contract-execution~1`
+
+Render runnable unittest source with requirement links and expected observations.
+For accepted inputs, compare the normalized result with exact, type-sensitive
+equality; for rejected inputs, require ValueError. When declared, verify deep
+input preservation on acceptance and rejection. Accept permitted implementation
+alternatives including dictionary order, output aliasing and exception wording.
+Unexpected errors and asynchronous results cannot pass. Generation and execution
+do not grant semantic approval or repair authority, increase runner budgets or
+promote incomplete execution to success.
+
+Assumptions: targets are trusted synchronous functions taking a JSON-valued
+argument. The caller supplies execution limits; generated tests are not a sandbox.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+- `intent~ib-check-critical-rules~1`
+
+Needs: impl, utest
+
+Implementation: [contract generator](../intentbond/validation_contract.py).
+Assertions: [contract tests](../tests/test_validation_contract.py).
+Format, bounds and review responsibilities: [validation contracts](validation-contracts.md).
 
 ### Pin optional repair authority to accepted requirements
 `req~ib-repair-policy~1`
