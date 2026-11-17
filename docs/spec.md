@@ -81,6 +81,7 @@ also identifies deferred areas and evidence limits. All IDs use
 | Change preservation | change-guard-policy, change-guard-preservation, change-guard-checks | Optional caller-pinned declaration; retained checks and protected paths, without semantic approval. |
 | Python behavioral comparison | python-comparison-policy, python-comparison-observations, python-comparison-retention | Optional preserved-output comparison against an accepted baseline; finite domains and trusted pure functions. |
 | Python validation test generation | validation-contract-generation, validation-contract-execution | Opt-in finite acceptance tests from caller-reviewed contracts; unsupported semantics refused, no automatic requirement inference or approval. |
+| Validation-contract repair adapter | validation-repair-preparation, validation-repair-execution | Explicitly frozen contract cases feed bounded repair and retained regressions; caller-selected actor and unchanged native limits. |
 | Recovery | recovery-preservation, recovery-clean-start, recovery-citations, recovery-edits, recovery-lineage, recovery-draft-status, recovery-preflight | Citation validity does not prove faithful or complete extraction. |
 | Alloy | alloy-assertions, alloy-witness | Native bounds; remaining manifest/input-binding/error contracts need decomposition. |
 | SMT | smt-assumptions, smt-outcomes | Results concern the encoding, not automatic equivalence to application behavior. |
@@ -1140,6 +1141,72 @@ Needs: impl, utest
 Implementation: [contract generator](../intentbond/validation_contract.py).
 Assertions: [contract tests](../tests/test_validation_contract.py).
 Format, bounds and review responsibilities: [validation contracts](validation-contracts.md).
+
+### Freeze reviewed validation cases for optional repair
+`req~ib-validation-repair-preparation~1`
+
+Only explicit adapter preparation connects the validation-contract generator to
+repair. Require the caller-reviewed contract digest, one maintained requirement,
+a module-level target function, a separately pinned proposal command and a fresh
+external directory. Generate once without importing the candidate or invoking
+the actor. Use the caller's existing case allowance, at most the native repair
+ceiling; refuse insufficient capacity rather than truncate. Freeze every case,
+its expectation, the target and proposer configuration, and dependency pins in
+the external adapter configuration. Changed contract/configuration/proposer
+inputs cannot silently become accepted inputs.
+
+Return an adapter policy for the existing repair API, not an invocation, wider
+edit authority or semantic approval. Ordinary generation, check, guard and repair
+defaults stay unchanged. Contract review and preparation remain caller work.
+
+Covers:
+- `intent~ib-preserve-purpose~1`
+- `intent~ib-review-decisions~1`
+
+Needs: impl, utest
+
+### Use frozen validation cases in bounded repair
+`req~ib-validation-repair-execution~1`
+
+The opt-in adapter supplies the frozen cases through the existing repair
+protocol. Attribute them to the selected contract requirement and pinned
+contract; retain positive controls. Reserve one frozen rejection case for the
+native second generation stage, without duplicate cases or adaptive-search
+claims. Refuse altered, missing or unexpected retained batches. Completion
+requires all generated cases, including that reserved boundary, in the native
+retained regression data and execution checks.
+
+Observe the selected function from the candidate worktree in a fresh adapter
+process. Compare acceptance, strict JSON normalized output and declared input
+preservation against contract-derived expectations. ValueError is the declared
+rejection; other exceptions and non-JSON outputs cannot pass. Asynchronous
+results remain unresolved. Report the concrete input, expected/observed outcome
+and requirement to the caller's pinned proposer through the existing failure
+handoff. Missing responses, unknown observations and timeouts cannot authorize
+successful completion.
+
+Delegate proposals only when the native loop requests them for recognized
+failures; keep the same process group and enclosing deadline without retries or
+allowance resets. Native edit boundaries, protected inputs, retained old checks,
+source identity and pending semantic review remain mandatory. An accepted
+baseline is not the oracle for newly requested behavior. The generated scaffold
+rechecks every retained case after repair and catches later reintroductions.
+
+Domain: one synchronous Python validation function, one contract requirement and
+one named native regression check with sibling test/data files. Trusted candidate
+code runs in the caller's environment; OS isolation and provider accounting stay
+with the existing runner. Finite cases do not prove full coverage or correct
+translation of intent, and passing tests do not authorize applying a repair.
+
+Covers:
+- `intent~ib-preserve-purpose~1`
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest
+
+Implementation: [validation adapter](../intentbond/validation_repair.py).
+Assertions: [adapter and native-loop tests](../tests/test_validation_repair.py).
+Configuration and limits: [validation contracts](validation-contracts.md#use-generated-cases-in-bounded-repair).
 
 ### Pin optional repair authority to accepted requirements
 `req~ib-repair-policy~1`

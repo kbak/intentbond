@@ -42,6 +42,13 @@ counterexamples from declared input domains without a custom generation adapter.
 Its baseline is a preservation oracle, not validation of newly requested behavior.
 It neither invokes repair automatically nor replaces the repair adapter.
 
+For new acceptance requirements already expressed as a reviewed validation
+contract, the opt-in [validation-contract adapter](validation-contracts.md#use-generated-cases-in-bounded-repair)
+provides frozen cases, observations and retained tests. The caller supplies only
+the proposal command and the existing guard/repair policy. Expectations come from
+the contract; no baseline output is assumed correct for the new request. This
+adapter uses the same native limits and review gates and is never selected by default.
+
 ## Prepare and run
 
 Prepare a guard from accepted baseline evidence. Preserve the repaired

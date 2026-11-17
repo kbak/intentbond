@@ -134,3 +134,66 @@ using the same generator and no automatic translation of human intent.
 See [the specification](spec.md#generate-finite-tests-from-reviewed-validation-contracts)
 for the maintained promises and [Python comparison](python-comparison.md) for
 preservation against an explicitly accepted baseline.
+
+## Use generated cases in bounded repair
+
+`prepare_validation_repair` supplies an opt-in adapter for the existing
+[repair API](repair.md). It freezes cases once from the reviewed contract and
+provides observations and a retained regression scaffold. It does not execute
+the candidate, choose a model, invoke repair or change any default.
+
+```python
+from intentbond.validation_repair import prepare_validation_repair
+
+adapter = prepare_validation_repair(
+    contract_path, reviewed_sha256,
+    module="service.settings", function="validate_retry_settings",
+    proposer=trusted_proposal_command,
+    out=external_preparation_directory,
+    max_cases=existing_policy["limits"]["cases"],
+)
+existing_policy["adapter"] = adapter
+```
+
+`trusted_proposal_command` has the same `command` and `inputs` shape as a repair
+adapter. Supply an absolute executable and pinned entry point/dependencies. It
+handles only `propose`: the existing request contains attributed failures,
+including each case's `input.value`, accepted outcome and observed outcome. It
+writes the ordinary source-bound proposal response. Preparation never runs it.
+The adapter replaces its process with this command, so the existing runner owns
+the same deadline and process group. No extra actor attempt or budget is added.
+
+Keep preparation output, the original reviewed contract, proposer and installed
+IntentBond runtime outside candidate source and repair output. The returned input
+pins cover them; include all other actor dependencies in its supplied inputs.
+Pin the resulting repair policy through the normal workflow. The adapter supports
+one contract requirement, which must be selected and preserved by the guard.
+Other preservation obligations and old checks remain in the guard. It uses the
+unchanged explicit edit boundaries; it grants no additional authority.
+
+Select one new regression check identity and sibling test/data paths. The test
+file must be discoverable by the project's existing native test command. The
+scaffold reads retained case data on every run and adds execution links without
+replacing old links. The target module must import from the candidate worktree;
+run the adapter in its normal fresh subprocess, with IntentBond available in the
+trusted test environment.
+
+All but one generated rejection case form the initial batch, with positive
+controls retained. The last reserved case is supplied at the existing second
+generation stage. This satisfies the native protocol without duplicate cases or
+more generation; it is a frozen boundary check, not adaptive adversarial search.
+All cases must pass and remain in the retained data before the loop completes.
+Changed batches, insufficient capacity and changed pinned inputs are refused.
+
+Expected outcomes come from the reviewed contract, including changed requirements
+that the previous implementation does not satisfy. Observations distinguish
+declared rejection, accepted values, unexpected exceptions and input mutation.
+Asynchronous results and interrupted commands remain unresolved. Legitimate error
+wording, validation order and output copying remain unconstrained.
+
+Preparation and contract review are separate from repair execution. The caller
+keeps its existing case, time, repair, tool and provider budgets; preparation does
+not enlarge them. Native source checks, old tests, edit restrictions and semantic
+review still govern acceptance. The adapter is for trusted code and adds no OS
+sandbox. Ordinary Astra can use the same adapter; its availability alone does not
+establish a comparative gain.
