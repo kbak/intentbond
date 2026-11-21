@@ -98,7 +98,9 @@ class InPlaceRecoveryTests(RecoveryFixture):
         )
         shutil.rmtree(self.claims_file.parent)
         self.commit()  # Caller acceptance with provenance archived separately.
-        self.assertEqual(self.git("ls-files", ".intentbond"), "")
+        self.assertEqual(
+            self.git("ls-files", ".intentbond").splitlines(), [".intentbond/scope.json"]
+        )
         baseline = self.git("rev-parse", "HEAD").strip()
         adopted = check(self.repo, None, baseline, baseline, self.root / "adopted", self.jar)
         # [utest->req~ib-recovery-preservation~1]
