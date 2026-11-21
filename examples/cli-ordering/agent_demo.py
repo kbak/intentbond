@@ -49,9 +49,9 @@ def baseline(out, variant, jar):
         path.write_text(path.read_text().replace('separators=(",", ":")', "indent=2", 1))
     elif variant != "tie-breaker":
         raise CheckError("Unknown CLI ordering variant")
-    scope = read_json(source / "scope.json")
+    scope = read_json(source / ".intentbond/scope.json")
     scope["tests"]["command"] = [sys.executable, "-B", "run_tests.py"]
-    write_json(source / "scope.json", scope)
+    write_json(source / ".intentbond/scope.json", scope)
     write_json(out / "scope.json", scope)
 
     def git(*args):

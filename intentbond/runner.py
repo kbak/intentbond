@@ -64,7 +64,7 @@ def check(
     try:
         repo = repository(repo_path)
         base_ref = resolve_commit(repo, base_ref)
-        # [impl->req~ib-policy-source~1]
+        # [impl->req~ib-policy-source~2]
         scope = (
             load_scope(scope_path)
             if scope_path is not None
@@ -241,7 +241,7 @@ def verify(
     }
     repo = repository(repo_path)
     base_commit = resolve_commit(repo, base_ref)
-    # [impl->req~ib-policy-source~1]
+    # [impl->req~ib-policy-source~2]
     scope = (
         load_scope(scope_path) if scope_path is not None else load_baseline_scope(repo, base_commit)
     )

@@ -18,6 +18,17 @@ from intentbond.runner import check, verify
 class InPlaceRecoveryTests(RecoveryFixture):
     isolated = False
 
+    def test_namespaced_policy_preserves_unrelated_root_scope(self):
+        legacy = self.repo / "scope.json"
+        original = '{"owner":"another tool"}\n'
+        legacy.write_text(original)
+        self.commit()
+        self.draft()
+        result = self.run_check()
+        # [utest->req~ib-policy-source~2]
+        self.assertEqual(result["status"], "review_required", result)
+        self.assertEqual(legacy.read_text(), original)
+
     def test_default_preparation_preserves_snapshot_and_leaves_git_review_records(self):
         original = (self.repo / "session.py").read_bytes()
         record = self.prepare()
@@ -87,7 +98,9 @@ class InPlaceRecoveryTests(RecoveryFixture):
         )
         shutil.rmtree(self.claims_file.parent)
         self.commit()  # Caller acceptance with provenance archived separately.
-        self.assertEqual(self.git("ls-files", ".intentbond"), "")
+        self.assertEqual(
+            self.git("ls-files", ".intentbond").splitlines(), [".intentbond/scope.json"]
+        )
         baseline = self.git("rev-parse", "HEAD").strip()
         adopted = check(self.repo, None, baseline, baseline, self.root / "adopted", self.jar)
         # [utest->req~ib-recovery-preservation~1]
@@ -206,9 +219,9 @@ class InPlaceRecoveryTests(RecoveryFixture):
         (history / "quotes.unknown").write_text("# [utest->req~session-expiration~1]\n")
         self.commit()
         self.draft()
-        scope = read_json(self.repo / "scope.json")
+        scope = read_json(self.repo / ".intentbond/scope.json")
         scope["inputs"] = ["."]
-        write_json(self.repo / "scope.json", scope)
+        write_json(self.repo / ".intentbond/scope.json", scope)
         # A quoted historical link must not satisfy the coverage need.
         shutil.copyfile(
             self.bundle / "source/tests/test_session.py", self.repo / "tests/test_session.py"
@@ -229,10 +242,10 @@ class InPlaceRecoveryTests(RecoveryFixture):
         (history / "notes.md").write_text("Original provenance.\n")
         self.commit()
         self.draft()
-        scope = read_json(self.repo / "scope.json")
+        scope = read_json(self.repo / ".intentbond/scope.json")
         scope["inputs"] = ["."]
         scope["specification_paths"].append(".intentbond")
-        write_json(self.repo / "scope.json", scope)
+        write_json(self.repo / ".intentbond/scope.json", scope)
         (history / "notes.md").write_text(
             "Original provenance.\n<!-- [impl->req~session-expiration~1] -->\n"
         )

@@ -48,9 +48,9 @@ def baseline(out, variant, jar):
         )
     elif variant != "shallow-copy":
         raise CheckError("Unknown reservation variant")
-    scope = read_json(source / "scope.json")
+    scope = read_json(source / ".intentbond/scope.json")
     scope["tests"]["command"] = [sys.executable, "-B", "run_tests.py"]
-    write_json(source / "scope.json", scope)
+    write_json(source / ".intentbond/scope.json", scope)
     write_json(out / "scope.json", scope)
 
     def git(*args):

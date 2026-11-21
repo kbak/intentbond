@@ -161,10 +161,10 @@ class RecoverySymlinkFixture(RecoveryFixture):
         self.commit()
         self.draft()
         workspace = Path(self.record["workspace"])
-        scope = read_json(workspace / "scope.json")
+        scope = read_json(workspace / ".intentbond/scope.json")
         scope["inputs"] = ["."]
         scope["specification_paths"].extend(["README.md", "guide.md"])
-        write_json(workspace / "scope.json", scope)
+        write_json(workspace / ".intentbond/scope.json", scope)
         return workspace, links
 
 

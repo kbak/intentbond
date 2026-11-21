@@ -60,7 +60,7 @@ class MixedReportTests(WorkflowFixture):
         ):
             with self.subTest(report=report):
                 # Reset configuration for each independent invocation.
-                scope = read_json(self.repo / "scope.json")
+                scope = read_json(self.repo / ".intentbond/scope.json")
                 write_json(self.scope, scope)
                 self.configure_reports(report)
                 result = self.run_check()

@@ -114,15 +114,15 @@ class BoundaryTests(WorkflowFixture):
 
     def test_implementation_review_selection_is_adopted_from_baseline(self):
         # [utest->req~ib-review-selection~1]
-        scope = read_json(self.repo / "scope.json")
+        scope = read_json(self.repo / ".intentbond/scope.json")
         scope["review_paths"] = ["session.py"]
-        write_json(self.repo / "scope.json", scope)
+        write_json(self.repo / ".intentbond/scope.json", scope)
         self.commit()
         self.base = self.git("rev-parse", "HEAD").strip()
         with (self.repo / "session.py").open("a") as handle:
             handle.write("\n# Implementation edit remains reviewable.\n")
         scope.pop("review_paths")
-        write_json(self.repo / "scope.json", scope)
+        write_json(self.repo / ".intentbond/scope.json", scope)
         result = self.run_check(scope_path=None)
         self.assertEqual(result["status"], "review_required")
         change = next(

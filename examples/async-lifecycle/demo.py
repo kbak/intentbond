@@ -85,9 +85,9 @@ def baseline(out, variant, jar):
             controller.write_text(
                 lifecycle.proposal(source, "alternative")["files"]["client/controller.py"]
             )
-    scope = read_json(source / "scope.json")
+    scope = read_json(source / ".intentbond/scope.json")
     scope["tests"]["command"] = [sys.executable, "-B", "run_tests.py"]
-    write_json(source / "scope.json", scope)
+    write_json(source / ".intentbond/scope.json", scope)
     write_json(out / "scope.json", scope)
     git(source, "init", "-q", "-b", "main")
     git(source, "add", ".")

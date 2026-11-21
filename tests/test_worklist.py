@@ -87,7 +87,7 @@ class WorklistTests(WorkflowFixture):
         write_json(self.scope, value)
         with self.assertRaisesRegex(CheckError, "scope differs"):
             worklist.record(self.queue, first, "reviewed", "Inspected")
-        shutil.copyfile(self.repo / "scope.json", self.scope)
+        shutil.copyfile(self.repo / ".intentbond/scope.json", self.scope)
         path = self.out / "review.json"
         path.write_text(path.read_text() + " ")
         with self.assertRaisesRegex(CheckError, "artifact missing or changed"):

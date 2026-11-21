@@ -73,7 +73,7 @@ active recovery. `ib recover-check` then needs no bundle/output arguments when
 run in that project. Explicit --out directories must be new and outside the
 working tree, or in its tool-managed Git recovery storage. Omit --input for an
 inventory of the whole snapshot, or select existing literal paths after
-inspection. The proposed scope.json can still select a smaller trace/test scope.
+inspection. The proposed `.intentbond/scope.json` can still select a smaller trace/test scope.
 Each check keeps a fresh result; preserve the reported evidence location.
 Both recovery modes default to durable Git storage. Explicit temporary paths
 remain supported, but check summaries warn about their retention. Git metadata
@@ -193,8 +193,10 @@ Original ID accounting uses inventoried specification documents, independent of
 which artifact types the proposed required_coverage selects. The scope remains a
 review decision: excluding an original document excludes it from that accounting.
 
-New files may be Markdown under specification_paths and root scope.json, plus
-the two recorded provenance files created by in-place preparation.
+New files may be Markdown under specification_paths and the proposed `.intentbond/scope.json`, plus
+the two recorded provenance files created by in-place preparation. Earlier proposals
+with only a root `scope.json` can still be checked. When both locations exist,
+recovery selects the namespaced policy and treats the root file as ordinary project content.
 Describe reorganizations and proposed meaning changes in claims.json. Do not
 silently remove missing behavior or tests to make the proposed graph pass.
 

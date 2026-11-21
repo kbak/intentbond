@@ -22,7 +22,7 @@ from .common import (
     within,
     write_json,
 )
-from .config import load_scope
+from .config import DEFAULT_SCOPE_PATH, LEGACY_SCOPE_PATH, load_scope
 from .oft import export_items, import_items
 from .python_comments import comment_lines
 from .recovery_report import render_review
@@ -93,6 +93,17 @@ def active_recovery(repo_path):
 def workspace_path(directory, record):
     # Schema 1 bundles were always isolated, with claims beside their draft.
     return Path(record["workspace"]) if record.get("mode") == "in_place" else directory / "draft"
+
+
+def proposed_scope_path(workspace):
+    preferred = workspace / DEFAULT_SCOPE_PATH
+    try:
+        preferred.lstat()
+    except (FileNotFoundError, NotADirectoryError):
+        legacy = workspace / LEGACY_SCOPE_PATH
+        if os.path.lexists(legacy):
+            return legacy
+    return preferred
 
 
 def claims_path(directory, record):
@@ -530,6 +541,9 @@ def editing_problems(source, candidate, scope, directory, inputs, record_paths=(
     problems = []
     old = {entry["path"]: entry for entry in source}
     new = {entry["path"]: entry for entry in candidate.manifest}
+    allowed_additions = {DEFAULT_SCOPE_PATH, *record_paths}
+    if DEFAULT_SCOPE_PATH not in new:
+        allowed_additions.add(LEGACY_SCOPE_PATH)
     for name, entry in old.items():
         if entry == new.get(name):
             continue
@@ -556,7 +570,7 @@ def editing_problems(source, candidate, scope, directory, inputs, record_paths=(
             )
     for name in new.keys() - old.keys():
         if new[name]["mode"] == "120000" or (
-            name not in {"scope.json", *record_paths} and not specification_document(name, scope)
+            name not in allowed_additions and not specification_document(name, scope)
         ):
             problems.append(f"Recovery added a non-specification file: {name}")
     return problems
@@ -730,8 +744,9 @@ def check_recovery(directory, scope_path, out, jar, java="java", *, preflight=Fa
             )
     try:
         record, manifest = read_bundle(directory)
-        scope_path = scope_path or workspace / "scope.json"
-        scope = load_scope(scope_path)
+        # [impl->req~ib-policy-source~2]
+        selected_scope = scope_path or proposed_scope_path(workspace)
+        scope = load_scope(selected_scope)
         inventory = {entry["path"]: entry for entry in read_json(directory / "inventory.json")}
         claims_file = claims_path(directory, record)
         claims = read_json(claims_file)
@@ -771,7 +786,12 @@ def check_recovery(directory, scope_path, out, jar, java="java", *, preflight=Fa
             result["candidate"] = candidate.identity()
             result["diagnostics"].extend(
                 editing_problems(
-                    manifest, candidate, scope, directory, record["inputs"], record_paths
+                    manifest,
+                    candidate,
+                    scope,
+                    directory,
+                    record["inputs"],
+                    record_paths,
                 )
             )
             if result["diagnostics"]:
@@ -892,7 +912,12 @@ def check_recovery(directory, scope_path, out, jar, java="java", *, preflight=Fa
                     result["diagnostics"].append(
                         "Draft changed during validation (contents, starting commit or branch); rerun recovery check"
                     )
-            if read_json(claims_file) != claims or load_scope(scope_path) != scope:
+            current_scope = scope_path or proposed_scope_path(workspace)
+            if (
+                read_json(claims_file) != claims
+                or current_scope != selected_scope
+                or load_scope(current_scope) != scope
+            ):
                 proposal_validated = False
                 result["status"] = "rejected"
                 result["diagnostics"].append("Claims or scope changed during validation; rerun")

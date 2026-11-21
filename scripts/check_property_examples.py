@@ -49,7 +49,7 @@ def main():
     (repo / ".gitignore").write_text(
         "__pycache__/\n.pytest_cache/\n.hypothesis/\nnode_modules/\ntest-results.xml\n"
     )
-    scope = json.loads((repo / "scope.json").read_text())
+    scope = json.loads((repo / ".intentbond/scope.json").read_text())
     if args.language == "python":
         scope["tests"]["command"][0] = sys.executable
     # The same trusted policy is used for every variant, outside the candidate.

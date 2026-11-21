@@ -141,8 +141,10 @@ For both `check` and `verify`:
   can be found, supply `--base COMMIT` explicitly. For changes based on another
   feature or release branch, also supply the intended starting commit.
 - `--candidate` defaults to `worktree`; it also accepts a commit or ref.
-- `--scope` defaults to the root `scope.json` read from the resolved baseline
-  commit. An explicit path is read as-is, relative to the current directory.
+- With no `--scope`, read `.intentbond/scope.json` from the resolved baseline
+  commit. Only if that path is absent, read the legacy root `scope.json` from
+  the same commit. An invalid preferred file fails the check, even if the legacy
+  policy is valid. An explicit path is read as-is, relative to the current directory.
 
 `check` creates a fresh `ib-evidence-*/check` directory in system temporary
 storage and prints the evidence path. To retain evidence elsewhere, supply
@@ -171,6 +173,11 @@ not change validation, its exit code, or the semantic review gate.
 
 For `verify`, use the same baseline and scope as the original check. If the
 default baseline has moved, pass its original commit with `--base`.
+
+CI integrations that compare the exact committed policy bytes can use
+`intentbond.config.commit_scope_path(repo, commit)` with a resolved commit.
+It returns the preferred repository-relative path, or `None` when the commit
+contains neither path. Git lookup errors propagate to the caller.
 
 Checks use the JAR selected by `--oft-jar` or `INTENTBOND_OFT_JAR`, falling back to the
 user cache. `--java` selects the Java executable. Provision these tools before
@@ -275,7 +282,7 @@ configuration. The same approved scope applies to base and candidate.
 By default, it comes from the baseline commit; changes to the candidate's copy
 do not change the checking rules. A missing or invalid baseline scope fails
 without falling back to the working copy. An explicit `--scope` reads the file
-as-is, even when it is inside the repository: `--scope scope.json` does not read
+as-is, even when it is inside the repository: `--scope .intentbond/scope.json` does not read
 the baseline version. Keep that approved copy outside candidate control for
 checking and verification. Trust depends on the selected version and who can
 change it, not its directory. Changes to the approved scope require authorization

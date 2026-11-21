@@ -4,7 +4,7 @@ This small CLI-tested example separates exponential growth from the maximum dela
 
 To inspect the bounded evolution in a disposable Git copy:
 
-1. Commit the baseline and remember its commit. Keep `scope.json` frozen.
+1. Commit the baseline and remember its commit. Keep `.intentbond/scope.json` frozen.
 2. Change `req~retry-cap~1` to revision 2 and its promised cap from 8 to 16 seconds. Keep `req~retry-growth~1` unchanged.
 3. In `retry.py`, update only the cap declaration/reference and `min(delay, 8)` to `min(delay, 16)`.
 4. In the cap test, advance its declaration/reference, assert the new exact boundary and update the over-cap expectation to 16. Preserve the growth test's identity and assertions.

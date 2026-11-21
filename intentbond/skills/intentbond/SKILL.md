@@ -18,8 +18,9 @@ authorize implementation. Continue authorized work, asking only about unresolved
 decisions that block it.
 
 Retain the repository's absolute path, trusted scope and starting baseline commit
-before editing. Use supplied inputs. Otherwise the CLI uses adopted scope.json
-and the merge base with the locally known default branch (HEAD on that branch or
+before editing. Use supplied inputs. Otherwise the CLI reads `.intentbond/scope.json` from the baseline commit,
+using the legacy root `scope.json` only if the namespaced path is absent. The default baseline
+is the merge base with the locally known default branch (HEAD on that branch or
 detached HEAD). Work based on another feature/release branch needs an explicit
 baseline. Reuse the starting commit for checking and verification; resolving the
 default after committing on the default branch would omit the change. Candidate

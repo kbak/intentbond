@@ -74,7 +74,7 @@ class RecoveryFeedbackTests(RecoveryFixture):
                 (self.repo / f"{stem}.{suffix}").write_text("const view = <div />;\n")
         self.commit()
         self.draft()
-        scope = read_json(self.bundle / "draft/scope.json")
+        scope = read_json(self.bundle / "draft/.intentbond/scope.json")
         scope["inputs"] = ["."]
         for suffix in ("tsx", "jsx"):
             for stem, kind in (("view", "impl"), ("test_view", "utest")):
@@ -83,7 +83,7 @@ class RecoveryFeedbackTests(RecoveryFixture):
                 target.write_text(f"// [{kind}->req~session-expiration~1]\n" + target.read_text())
                 if kind == "utest":
                     scope["test_paths"].append(name)
-        write_json(self.bundle / "draft/scope.json", scope)
+        write_json(self.bundle / "draft/.intentbond/scope.json", scope)
         result = self.run_check()
         self.assertEqual(result["status"], "review_required", result)
         items = import_items(self.out / "check/candidate-items.xml", self.bundle / "draft")

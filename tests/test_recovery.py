@@ -41,7 +41,8 @@ class RecoveryFixture(unittest.TestCase):
                     if "->req~" not in line
                 )
             )
-        (self.repo / "scope.json").unlink()
+        (self.repo / ".intentbond/scope.json").unlink()
+        (self.repo / ".intentbond").rmdir()
         (self.repo / "requirements.md").unlink()
         (self.repo / "README.md").write_text(
             "# Sessions\n\nSessions expire after 30 minutes of inactivity.\n"
@@ -78,8 +79,15 @@ class RecoveryFixture(unittest.TestCase):
 
     def draft(self, inputs=None):
         self.prepare(inputs)
-        for name in ("requirements.md", "scope.json", "session.py", "tests/test_session.py"):
-            shutil.copyfile(FIXTURE / name, Path(self.record["workspace"]) / name)
+        for name in (
+            "requirements.md",
+            ".intentbond/scope.json",
+            "session.py",
+            "tests/test_session.py",
+        ):
+            target = Path(self.record["workspace"]) / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(FIXTURE / name, target)
         self.claims = {
             "schema_version": 1,
             "items": [
@@ -114,6 +122,8 @@ class RecoveryFixture(unittest.TestCase):
 class RecoveryTests(RecoveryFixture):
     def test_schema_one_isolated_bundles_remain_checkable(self):
         self.draft()
+        workspace = self.bundle / "draft"
+        (workspace / ".intentbond/scope.json").rename(workspace / "scope.json")
         record = read_json(self.bundle / "recovery.json")
         legacy = {
             key: record[key]
@@ -129,8 +139,19 @@ class RecoveryTests(RecoveryFixture):
         }
         write_json(self.bundle / "recovery.json", {"schema_version": 1, **legacy})
         result = self.run_check()
+        # [utest->req~ib-policy-source~2]
         self.assertEqual(result["status"], "review_required", result)
         self.assertTrue((self.out / "proposed").is_dir())
+
+    def test_invalid_namespaced_proposal_does_not_use_valid_root_scope(self):
+        self.draft()
+        preferred = self.bundle / "draft/.intentbond/scope.json"
+        shutil.copyfile(preferred, self.bundle / "draft/scope.json")
+        preferred.write_text("{}")
+        result = self.run_check()
+        # [utest->req~ib-policy-source~2]
+        self.assertEqual(result["status"], "error", result)
+        self.assertIn("Scope has unknown or missing fields", str(result["diagnostics"]))
 
     def test_malformed_bundle_still_produces_an_error_report(self):
         self.draft()
@@ -237,10 +258,10 @@ class RecoveryTests(RecoveryFixture):
         for name, kind in names.items():
             path = self.bundle / "draft" / name
             path.write_text(f"// [{kind}->req~session-expiration~1]\n" + path.read_text())
-        scope = read_json(self.bundle / "draft/scope.json")
+        scope = read_json(self.bundle / "draft/.intentbond/scope.json")
         scope["inputs"].append("modules")
         scope["test_paths"].extend(name for name, kind in names.items() if kind == "utest")
-        write_json(self.bundle / "draft/scope.json", scope)
+        write_json(self.bundle / "draft/.intentbond/scope.json", scope)
         result = self.run_check()
         self.assertEqual(result["status"], "review_required", result)
         self.assertEqual(result["check_status"], "passed", result)
@@ -410,8 +431,15 @@ class RecoveryTests(RecoveryFixture):
             )
         self.assertEqual(code, 0, stderr.getvalue())
         self.assertIn("prepared:", stdout.getvalue())
-        for name in ("requirements.md", "scope.json", "session.py", "tests/test_session.py"):
-            shutil.copyfile(FIXTURE / name, self.bundle / "draft" / name)
+        for name in (
+            "requirements.md",
+            ".intentbond/scope.json",
+            "session.py",
+            "tests/test_session.py",
+        ):
+            target = self.bundle / "draft" / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(FIXTURE / name, target)
         write_json(
             self.bundle / "claims.json", {"schema_version": 1, "items": [], "open_issues": []}
         )

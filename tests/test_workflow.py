@@ -38,7 +38,7 @@ class WorkflowFixture(unittest.TestCase):
         self.commit()
         self.base = self.git("rev-parse", "HEAD").strip()
         self.scope = self.root / "policy.json"
-        shutil.copyfile(self.repo / "scope.json", self.scope)
+        shutil.copyfile(self.repo / ".intentbond/scope.json", self.scope)
         self.counter = 0
 
     def git(self, *args):
@@ -218,11 +218,11 @@ class WorkflowTests(WorkflowFixture):
         self.replace(
             "tests/test_session.py", "# [utest->req~session-expiration~1]", "# Removed reference"
         )
-        local = read_json(self.repo / "scope.json")
+        local = read_json(self.repo / ".intentbond/scope.json")
         local["required_coverage"] = {"req": ["impl"]}
-        write_json(self.repo / "scope.json", local)
+        write_json(self.repo / ".intentbond/scope.json", local)
         code, stdout, stderr = self.run_cli("check")
-        # [utest->req~ib-policy-source~1]
+        # [utest->req~ib-policy-source~2]
         self.assertEqual(code, 1, (stdout, stderr))
         self.assertIn("must retain Needs: utest", stdout)
         evidence = Path(stdout.splitlines()[0].split(": ", 1)[1])
@@ -232,9 +232,9 @@ class WorkflowTests(WorkflowFixture):
         self.git("checkout", "-qb", "topic")
         self.replace("requirements.md", "30 minutes", "60 minutes")
         self.commit()
-        local = read_json(self.repo / "scope.json")
+        local = read_json(self.repo / ".intentbond/scope.json")
         local["name"] = "candidate-policy"
-        write_json(self.repo / "scope.json", local)
+        write_json(self.repo / ".intentbond/scope.json", local)
         self.commit()
         self.git("checkout", "-q", "main")
         (self.repo / "unrelated.txt").write_text("Another change on main\n")
@@ -307,24 +307,45 @@ class WorkflowTests(WorkflowFixture):
         self.assertEqual(read_json(evidence)["predicate"]["base"]["commit"], self.base)
 
     def test_cli_missing_baseline_scope_does_not_fall_back_to_worktree(self):
-        (self.repo / "scope.json").unlink()
+        (self.repo / ".intentbond/scope.json").unlink()
         self.commit()
-        shutil.copyfile(self.scope, self.repo / "scope.json")
+        shutil.copyfile(self.scope, self.repo / ".intentbond/scope.json")
         code, stdout, stderr = self.run_cli("check")
-        # [utest->req~ib-policy-source~1]
+        # [utest->req~ib-policy-source~2]
         self.assertEqual(code, 2, (stdout, stderr))
-        self.assertIn("Cannot read scope.json from the baseline", stdout)
+        self.assertIn("Cannot read .intentbond/scope.json from the baseline", stdout)
         code, stdout, stderr = self.run_cli("check", "--scope", str(self.scope))
         self.assertEqual(code, 0, (stdout, stderr))
 
+    def test_scope_migration_checks_and_verifies_against_either_baseline(self):
+        preferred = self.repo / ".intentbond/scope.json"
+        legacy = self.repo / "scope.json"
+        preferred.rename(legacy)
+        self.commit()
+        old_base = self.git("rev-parse", "HEAD").strip()
+        approved = read_json(legacy)
+        migrated = {**approved, "name": "migrated policy"}
+        write_json(preferred, migrated)
+        legacy.write_text('{"owner":"another tool"}\n')
+        self.commit()
+        for base, policy in ((old_base, approved), ("HEAD", migrated)):
+            with self.subTest(base=base):
+                result = self.run_check(scope_path=None, base_ref=base)
+                # [utest->req~ib-policy-source~2]
+                self.assertEqual(result["status"], "passed", result)
+                self.assertEqual(read_json(self.out / "scope.json"), policy)
+                match = verify(self.repo, None, base, "worktree", self.out / "evidence.json")
+                self.assertEqual(match["status"], "matched")
+
     def test_cli_invalid_baseline_scope_does_not_fall_back_to_valid_worktree_file(self):
+        shutil.copyfile(self.scope, self.repo / "scope.json")
         for content in ("{", '{"schema_version": 1, "schema_version": 1}'):
             with self.subTest(content=content):
-                (self.repo / "scope.json").write_text(content)
+                (self.repo / ".intentbond/scope.json").write_text(content)
                 self.commit()
-                shutil.copyfile(self.scope, self.repo / "scope.json")
+                shutil.copyfile(self.scope, self.repo / ".intentbond/scope.json")
                 code, stdout, stderr = self.run_cli("check")
-                # [utest->req~ib-policy-source~1]
+                # [utest->req~ib-policy-source~2]
                 self.assertEqual(code, 2, (stdout, stderr))
 
     def test_cli_default_output_cannot_be_created_inside_repository(self):
@@ -404,9 +425,9 @@ class WorkflowTests(WorkflowFixture):
         self.replace(
             "tests/test_session.py", "# [utest->req~session-expiration~1]", "# Removed reference"
         )
-        local = read_json(self.repo / "scope.json")
+        local = read_json(self.repo / ".intentbond/scope.json")
         local["required_coverage"] = {"req": ["impl"]}
-        write_json(self.repo / "scope.json", local)
+        write_json(self.repo / ".intentbond/scope.json", local)
         write_json(self.repo / "approval.json", {"decision": "I approve my own change"})
         result = self.run_check()
         self.assertEqual(result["trace"]["candidate"]["status"], "passed")
@@ -678,7 +699,7 @@ class WorkflowTests(WorkflowFixture):
         self.configure(lambda s: s.update(name="different-policy"))
         with self.assertRaisesRegex(CheckError, "Scope differs"):
             verify(self.repo, self.scope, self.base, "worktree", evidence)
-        shutil.copyfile(self.repo / "scope.json", self.scope)
+        shutil.copyfile(self.repo / ".intentbond/scope.json", self.scope)
         self.replace("session.py", "30 * 60", "1800")
         self.commit()
         with self.assertRaisesRegex(CheckError, "Base differs"):

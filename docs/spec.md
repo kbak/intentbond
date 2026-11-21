@@ -6,13 +6,13 @@ to the intent it supports through OFT `Covers`, and to its implementation and
 tests. These links express refinement, and review assesses
 whether the technical promise serves the intended outcome.
 
-The root [scope](../scope.json) selects the
+The [repository scope](../.intentbond/scope.json) selects the
 checking policy, including `examples/` as additional review paths outside the
 product trace graph.
 
 ## Checking scope
 
-The root scope imports runtime code, all Python tests, maintained guides,
+The repository scope imports runtime code, all Python tests, maintained guides,
 packaged skills and build/test configuration. `examples/` is selected through
 `review_paths`; its files are captured and used by existing tests, while its
 illustrative requirements stay outside the product graph.
@@ -326,9 +326,13 @@ Assertions: [manual boundary](../tests/test_assurance.py),
 does not mean one assertion proves the whole statement.
 
 ### Use the selected baseline policy
-`req~ib-policy-source~1`
+`req~ib-policy-source~2`
 
-Ordinary checks and verification use scope.json from the resolved baseline commit. Candidate policy edits do not change those rules. An explicit --scope selects the supplied file as-is; a missing or invalid baseline scope must not fall back to the working copy.
+Ordinary checks and verification read `.intentbond/scope.json` from the resolved baseline commit.
+Recovery checks read the proposed policy from the recovery workspace. In each case,
+use the legacy root `scope.json` only when the namespaced path is absent. An invalid
+selected policy is an error. Candidate policy edits cannot change the baseline rules.
+An explicit `--scope` selects the supplied file as-is.
 
 Covers:
 - `intent~ib-review-decisions~1`
@@ -337,7 +341,7 @@ Needs: impl, utest
 
 Documentation: [docs/contract.md](contract.md).
 
-Implementation: [intentbond/config.py](../intentbond/config.py), [intentbond/runner.py](../intentbond/runner.py).
+Implementation: [intentbond/config.py](../intentbond/config.py), [intentbond/runner.py](../intentbond/runner.py), [intentbond/recovery.py](../intentbond/recovery.py).
 
 Existing assertions: [test_cli_default_scope_cannot_be_weakened_by_candidate_edits](../tests/test_workflow.py); [test_cli_missing_baseline_scope_does_not_fall_back_to_worktree](../tests/test_workflow.py); [test_cli_invalid_baseline_scope_does_not_fall_back_to_valid_worktree_file](../tests/test_workflow.py).
 

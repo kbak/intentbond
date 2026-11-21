@@ -4,24 +4,35 @@ from pathlib import Path
 from .common import CheckError, parse_json, read_json, relative_path, within
 from .snapshot import git
 
+DEFAULT_SCOPE_PATH = ".intentbond/scope.json"
+LEGACY_SCOPE_PATH = "scope.json"
+
 
 def load_scope(path: Path):
     return validate_scope(read_json(path))
 
 
-# [impl->req~ib-policy-source~1]
+# [impl->req~ib-policy-source~2]
+def commit_scope_path(repo: Path, commit: str) -> str | None:
+    """Locate the policy in a resolved Git commit, preserving absence for adoption workflows."""
+    names = (DEFAULT_SCOPE_PATH, LEGACY_SCOPE_PATH)
+    entries = git(repo, "ls-tree", "--full-tree", "--name-only", "-z", commit, "--", *names)
+    paths = entries.decode().split("\0")
+    return next((name for name in names if name in paths), None)
+
+
 def load_baseline_scope(repo, commit):
-    try:
-        content = git(repo, "show", f"{commit}:scope.json")
-    except CheckError as exc:
+    name = commit_scope_path(repo, commit)
+    if name is None:
         raise CheckError(
-            "Cannot read scope.json from the baseline; commit it before starting "
-            "the change or supply a trusted file with --scope"
-        ) from exc
+            f"Cannot read {DEFAULT_SCOPE_PATH} from the baseline (legacy {LEGACY_SCOPE_PATH} "
+            "also absent); commit the scope or supply a trusted file with --scope"
+        )
     try:
+        content = git(repo, "cat-file", "blob", f"{commit}:{name}")
         return validate_scope(parse_json(content))
-    except ValueError as exc:
-        raise CheckError(f"Invalid scope.json in baseline: {exc}") from exc
+    except (CheckError, ValueError) as exc:
+        raise CheckError(f"Invalid {name} in baseline: {exc}") from exc
 
 
 def validate_scope(scope):

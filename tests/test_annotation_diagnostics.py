@@ -85,7 +85,7 @@ class DocumentationRecoveryTests(RecoveryFixture):
         (self.repo / "fixture.md").write_text("An executable documentation fixture.\n")
         self.commit()
         self.draft()
-        scope_path = self.bundle / "draft/scope.json"
+        scope_path = self.bundle / "draft/.intentbond/scope.json"
         scope = read_json(scope_path)
         scope["review_paths"] = ["fixture.md"]
         write_json(scope_path, scope)
@@ -100,7 +100,7 @@ class DocumentationRecoveryTests(RecoveryFixture):
         (self.repo / "guide.md").write_text(GUIDE)
         self.commit()
         self.draft()
-        scope_path = self.bundle / "draft/scope.json"
+        scope_path = self.bundle / "draft/.intentbond/scope.json"
         scope = read_json(scope_path)
         scope["inputs"].append("guide.md")
         scope["specification_paths"].append("guide.md")
