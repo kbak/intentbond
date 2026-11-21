@@ -24,7 +24,7 @@ class ImpactTests(WorkflowFixture):
         self.git("init", "-q", "-b", "main")
         self.commit()
         self.base = self.git("rev-parse", "HEAD").strip()
-        shutil.copyfile(self.repo / "scope.json", self.scope)
+        shutil.copyfile(self.repo / ".intentbond/scope.json", self.scope)
 
     def revised(self, behavior=True, stale=False):
         for path in ("requirements.md", "retry.py", "tests/test_retry.py"):

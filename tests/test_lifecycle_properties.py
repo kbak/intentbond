@@ -37,10 +37,10 @@ class EvidenceLifecycle(RuleBasedStateMachine):
                 EXAMPLE, self.repo, ignore=shutil.ignore_patterns("__pycache__", "*.pyc")
             )
             (self.repo / ".gitignore").write_text("cache/\n")
-            scope = read_json(self.repo / "scope.json")
+            scope = read_json(self.repo / ".intentbond/scope.json")
             scope["tests"]["command"][0] = sys.executable
             scope["policy"] = {"require_revision_increase": True}
-            write_json(self.repo / "scope.json", scope)
+            write_json(self.repo / ".intentbond/scope.json", scope)
             self.scope = self.root / "trusted-scope.json"
             write_json(self.scope, scope)
             self.model = {}

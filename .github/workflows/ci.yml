@@ -14,7 +14,7 @@ env:
 jobs:
   package-and-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
       INTENTBOND_OFT_JAR: ${{ github.workspace }}/.tools/openfasttrace-4.9.0.jar
       INTENTBOND_ALLOY_JAR: ${{ github.workspace }}/.tools/alloy-6.2.0.jar

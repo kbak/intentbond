@@ -24,7 +24,7 @@ existing code and tests. Flag inferred behavior and missing checks."**
 The agent inspects the repository, recommends an initial scope and asks about
 unresolved choices, such as which subsystem to start with or whether to include
 local changes. It handles prerequisites, bundle preparation, drafting and checks.
-You do not need to supply commands, output paths, or a scope.json yourself.
+You do not need to supply commands, output paths, or a scope file yourself.
 Existing caller decisions are reused. The commands below also support manual use.
 
 For a large repository, start with the feature you will change next, its
@@ -105,7 +105,7 @@ changes of meaning, and retain useful counterexamples as regressions.
    the workspace; `--isolated` prepares a separate draft and leaves the original
    checkout unchanged. No model or test command runs during preparation.
 2. The author annotates or restructures selected specification documents, adds
-   or retargets coverage comments, supplies an ordinary scope.json, and records
+   or retargets coverage comments, supplies `.intentbond/scope.json`, and records
    original citations, changes and unresolved questions in claims.json. Original
    snapshots, implementation behavior and test assertions are preserved.
 3. `ib recover-check` validates citations against the captured original, checks
@@ -146,7 +146,7 @@ The CLI prints the retained snapshot/instructions location and creates
 `.intentbond/recovery/<id>/source.json` and `claims.json` in the checkout.
 source.json identifies the captured original; preserve it during recovery. The author adds
 source citations and unresolved questions to claims.json, adds requirements and
-coverage annotations to project files, and proposes root scope.json. These are
+coverage annotations to project files, and proposes `.intentbond/scope.json`. These are
 ordinary working-tree changes. Newly created files appear in Git status/editor
 source control and are not included in unstaged `git diff` until staged.
 
@@ -180,8 +180,11 @@ select a retained bundle explicitly. --input on preparation selects literal
 repository-relative paths; omit it to inventory the whole snapshot.
 
 The proposed scope selects the trace graph and test command. Inspect that command
-before executing a draft from an untrusted source. --scope can supply an external
-proposal when existing scope.json must remain unchanged. --out can select new
+before executing a draft from an untrusted source. Both in-place and isolated
+recovery checks read `.intentbond/scope.json` in the proposal workspace. A
+root-only `scope.json` from an older proposal still works. If both exist, the
+namespaced file takes precedence, including when it contains an error.
+`--scope` can supply an external proposal while preserving an existing policy. --out can select new
 storage outside the checkout, or within its tool-managed Git recovery storage.
 Check output must also remain outside the source bundle itself.
 Both modes default to Git storage; isolated check output is retained beside its
@@ -343,7 +346,7 @@ Outside editable `.md`/`.markdown` specification documents, existing inventoried
 files permit only standalone OFT coverage-comment additions, removals and replacements,
 including `//` comments in `.mjs` and `.cjs` modules. All non-annotation lines and
 existing file modes must remain unchanged. New files are limited to Markdown within
-specification_paths, root scope.json, and the recorded source/claims files created
+`specification_paths`, the proposed scope at its default or legacy location, and the recorded source/claims files created
 by in-place preparation. Existing recovery records remain unchanged during recovery;
 post-adoption cleanup uses ordinary development checks.
 

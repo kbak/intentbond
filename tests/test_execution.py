@@ -32,7 +32,7 @@ class ExecutionReportTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory(prefix="ib-execution-report-")
         self.addCleanup(temporary.cleanup)
         self.path = Path(temporary.name) / "tests.xml"
-        self.scope = read_json(EXAMPLES / "session/scope.json")
+        self.scope = read_json(EXAMPLES / "session/.intentbond/scope.json")
         self.scope["tests"]["execution_links"] = copy.deepcopy(OPTIONS)
         self.items = [
             {"id": TEST, "type": "utest", "path": "tests/test_session.py"},
@@ -282,7 +282,7 @@ class ExecutionWorkflowTests(WorkflowFixture):
             'self.case = ET.SubElement(suite_xml, "testcase", name=test.id())\n        identifier = getattr(getattr(test, test._testMethodName), "oft_id", None)\n        if identifier:\n            properties = ET.SubElement(self.case, "properties")\n            ET.SubElement(properties, "property", name="oft_id", value=identifier)',
         )
         self.configure(lambda scope: scope["tests"].update(execution_links=copy.deepcopy(OPTIONS)))
-        write_json(self.repo / "scope.json", read_json(self.scope))
+        write_json(self.repo / ".intentbond/scope.json", read_json(self.scope))
         self.commit()
         self.base = self.git("rev-parse", "HEAD").strip()
 
@@ -346,14 +346,14 @@ class ExecutionWorkflowTests(WorkflowFixture):
 
     def test_missing_required_execution_cannot_be_waived_by_candidate_scope(self):
         self.require_boundary()
-        write_json(self.repo / "scope.json", read_json(self.scope))
+        write_json(self.repo / ".intentbond/scope.json", read_json(self.scope))
         self.commit()
         self.base = self.git("rev-parse", "HEAD").strip()
         self.replace("tests/test_session.py", "test_expiration_boundary", "omitted_boundary")
         self.add_other_test()
-        candidate_scope = read_json(self.repo / "scope.json")
+        candidate_scope = read_json(self.repo / ".intentbond/scope.json")
         del candidate_scope["tests"]["execution_links"]["required_artifacts"]
-        write_json(self.repo / "scope.json", candidate_scope)
+        write_json(self.repo / ".intentbond/scope.json", candidate_scope)
         result = self.run_check(scope_path=None)
         self.assertEqual(result["tests"]["status"], "passed")
         self.assertEqual(result["status"], "rejected")
@@ -498,9 +498,9 @@ class PytestExecutionTests(WorkflowFixture):
         shutil.rmtree(self.repo)
         shutil.copytree(EXAMPLES / "pytest-session", self.repo)
         self.git("init", "-q", "-b", "main")
-        scope = read_json(self.repo / "scope.json")
+        scope = read_json(self.repo / ".intentbond/scope.json")
         scope["tests"]["command"][0] = sys.executable
-        write_json(self.repo / "scope.json", scope)
+        write_json(self.repo / ".intentbond/scope.json", scope)
         write_json(self.scope, scope)
         self.commit()
         self.base = self.git("rev-parse", "HEAD").strip()

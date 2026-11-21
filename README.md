@@ -98,7 +98,7 @@ ib recover
 ```
 
 This saves the original source and prepares citation records. Add requirements,
-code/test references, and a `scope.json` following the [recovery guide](docs/recovery.md),
+code/test references, and `.intentbond/scope.json` following the [recovery guide](docs/recovery.md),
 then run:
 
 ```sh
@@ -116,9 +116,14 @@ explains how to preserve provenance in Git history or artifact storage.
 
 ### 1. Configure the project
 
-Copy [scope.json](examples/session/scope.json) and adapt its paths, coverage rules,
-and test command. Commit it at the project root with the starting requirements
-and references.
+Create `.intentbond/` at the project root and copy the [example scope](examples/session/.intentbond/scope.json)
+to `.intentbond/scope.json`. Adapt its repository-relative paths, coverage rules,
+and test command. Commit it with the starting requirements and references.
+
+Existing projects can keep their root `scope.json`. To migrate, upgrade IntentBond
+wherever checks run (including CI), then move the existing policy to
+`.intentbond/scope.json` and commit the move. Checks against older baselines
+continue to use the policy committed at the old path.
 
 Checks use the baseline's scope, so candidate edits cannot change their own
 checking rules. A caller can instead supply a trusted external scope with

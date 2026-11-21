@@ -8,6 +8,7 @@ from pathlib import Path
 from . import __version__, alloy, change_guard, chc, smt, worklist
 from .check_output import follow_test_log, render_check
 from .common import CheckError
+from .config import DEFAULT_SCOPE_PATH, LEGACY_SCOPE_PATH
 from .evidence import EXIT_CODES
 from .explain import explain, explain_many, render_context, render_explanation
 from .impact import impact, render_impact
@@ -267,7 +268,9 @@ def parser():
         help="Checkout containing the documentation proposal (default: current repository)",
     )
     recovering.add_argument(
-        "--scope", type=Path, help="Proposed scope (default: workspace/scope.json)"
+        "--scope",
+        type=Path,
+        help=f"Proposed scope (workspace default: {DEFAULT_SCOPE_PATH}, then legacy {LEGACY_SCOPE_PATH})",
     )
     recovering.add_argument(
         "--out", type=Path, help="New result directory (default: tool-managed storage)"
@@ -290,7 +293,7 @@ def parser():
         command.add_argument(
             "--scope",
             type=Path,
-            help="Trusted scope JSON (default: scope.json from the baseline commit)",
+            help=f"Trusted scope JSON (baseline commit default: {DEFAULT_SCOPE_PATH}, then legacy {LEGACY_SCOPE_PATH})",
         )
         command.add_argument(
             "--base", help="Baseline commit/ref (default: merge base with the default branch)"

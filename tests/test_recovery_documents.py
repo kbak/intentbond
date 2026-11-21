@@ -75,10 +75,10 @@ class DocumentRecoveryTests(DocumentRecoveryFixture):
 
     def test_unstructured_readme_can_be_rewritten_with_original_citations(self):
         self.draft()
-        scope = read_json(self.workspace / "scope.json")
+        scope = read_json(self.workspace / ".intentbond/scope.json")
         scope["inputs"].append("README.md")
         scope["specification_paths"].append("README.md")
-        write_json(self.workspace / "scope.json", scope)
+        write_json(self.workspace / ".intentbond/scope.json", scope)
         (self.workspace / "README.md").write_text(
             "# Sessions\n\nSee [session requirements](requirements.md) for the inactivity policy.\n"
         )
@@ -100,10 +100,10 @@ class DocumentRecoveryTests(DocumentRecoveryFixture):
         self.structured_draft()
         (self.workspace / "docs").mkdir()
         (self.workspace / "requirements.md").rename(self.workspace / "docs/baseline.md")
-        scope = read_json(self.workspace / "scope.json")
+        scope = read_json(self.workspace / ".intentbond/scope.json")
         scope["inputs"] = ["."]
         scope["specification_paths"] = ["requirements.md", "docs"]
-        write_json(self.workspace / "scope.json", scope)
+        write_json(self.workspace / ".intentbond/scope.json", scope)
         self.document_change("requirements.md")
         result = self.run_check()
         self.assertEqual(result["status"], "review_required", result)
@@ -236,10 +236,10 @@ class DocumentRecoveryTests(DocumentRecoveryFixture):
 
         (self.workspace / "docs").mkdir()
         path.rename(self.workspace / "docs/baseline.md")
-        scope = read_json(self.workspace / "scope.json")
+        scope = read_json(self.workspace / ".intentbond/scope.json")
         scope["inputs"] = ["."]
         scope["specification_paths"] = ["requirements.md", "docs"]
-        write_json(self.workspace / "scope.json", scope)
+        write_json(self.workspace / ".intentbond/scope.json", scope)
         self.document_change("requirements.md")
         result = self.run_check()
         self.assertEqual(result["status"], "review_required", result)

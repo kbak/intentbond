@@ -14,7 +14,7 @@ examples and AGENTS.md in addition to specification/test paths.
 
 Scope changes are proposals until adopted through the project's review process.
 Check the proposal against the existing accepted baseline; subsequent work uses
-the new accepted baseline. Editing candidate scope.json cannot lower or raise the
+the new accepted baseline. Editing the candidate’s `.intentbond/scope.json` cannot lower or raise the
 policy applied by that same check. An explicitly supplied `--scope` must come from
 the caller's trusted process.
 

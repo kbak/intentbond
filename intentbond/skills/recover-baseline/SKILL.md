@@ -181,7 +181,7 @@ Never label inferred current behavior as historically approved intent. Agreement
 between generated docs, code and tests may reflect one shared mistaken assumption.
 Avoid numerical confidence claims without a calibrated basis.
 
-Prepare the proposed scope.json using the existing IntentBond
+Prepare the proposed `.intentbond/scope.json` using the existing IntentBond
 scope format, including the project's real test command. The evidence inventory
 is broader context; the scope selects the actual bounded trace and test policy.
 Before finalizing it, identify which source documents remain maintained descriptions

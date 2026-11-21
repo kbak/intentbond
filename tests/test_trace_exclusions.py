@@ -47,9 +47,9 @@ class TraceExclusionTests(WorkflowFixture):
 
     def test_candidate_cannot_authorize_new_exclusions(self):
         self.prepare()
-        scope = read_json(self.repo / "scope.json")
+        scope = read_json(self.repo / ".intentbond/scope.json")
         scope["trace_exclude"] = ["session.py"]
-        write_json(self.repo / "scope.json", scope)
+        write_json(self.repo / ".intentbond/scope.json", scope)
         self.replace("session.py", "# [impl->req~session-expiration~1]", "# removed coverage")
         result = self.run_check()
         # [utest->req~ib-trace-exclusions~1]

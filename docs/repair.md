@@ -144,7 +144,7 @@ ib repair run --repo /path/to/project --scope /trusted/scope.json \
   --out /outside/source/new-repair-run
 ```
 
-Omit `--scope` to use `scope.json` at the guard's baseline commit. Use the same
+Omit `--scope` to use the [default policy lookup](contract.md#check-and-verify-inputs) at the guard's baseline commit. Use the same
 trusted scope as the guard. `--oft-jar` and `--java` retain their ordinary meaning.
 Output must be a new directory outside source. The guard plan, policy, adapter
 and reference inputs must be outside source and output.

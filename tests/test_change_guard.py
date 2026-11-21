@@ -25,7 +25,7 @@ class ChangeGuardTests(WorkflowFixture):
             'self.case = ET.SubElement(suite_xml, "testcase", name=test.id())\n        identifier = getattr(getattr(test, test._testMethodName), "oft_id", None)\n        if identifier:\n            properties = ET.SubElement(self.case, "properties")\n            ET.SubElement(properties, "property", name="oft_id", value=identifier)',
         )
         self.configure(lambda scope: scope["tests"].update(execution_links=copy.deepcopy(OPTIONS)))
-        write_json(self.repo / "scope.json", read_json(self.scope))
+        write_json(self.repo / ".intentbond/scope.json", read_json(self.scope))
         (self.repo / "api").mkdir()
         (self.repo / "api/schema.json").write_text('{"field": "inactive_seconds"}\n')
         (self.repo / "label.txt").write_text("Sign in\n")
@@ -343,9 +343,9 @@ class ChangeGuardTests(WorkflowFixture):
 
     def test_candidate_scope_cannot_lower_frozen_policy(self):
         self.prepare()
-        scope = read_json(self.repo / "scope.json")
+        scope = read_json(self.repo / ".intentbond/scope.json")
         scope["tests"].pop("execution_links")
-        write_json(self.repo / "scope.json", scope)
+        write_json(self.repo / ".intentbond/scope.json", scope)
         self.replace("session.py", ">= 30 * 60", "> 30 * 60")
         result = self.evaluate()
         self.assertEqual(result["checks"][0]["status"], "failed")

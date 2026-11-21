@@ -24,7 +24,7 @@ def run(out, jar):
         repo,
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
     )
-    scope = read_json(repo / "scope.json")
+    scope = read_json(repo / ".intentbond/scope.json")
     scope.update(
         inputs=["requirements.md", "retry.py", "tests", "helpers"], review_paths=["retry.py"]
     )
@@ -49,7 +49,7 @@ def run(out, jar):
             "required_artifacts": ["utest~retry-cap"],
         },
     }
-    write_json(repo / "scope.json", scope)
+    write_json(repo / ".intentbond/scope.json", scope)
     write_json(
         repo / "tests/oft-links.json",
         {
