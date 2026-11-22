@@ -481,6 +481,18 @@ IDs or invalid supplied metadata reject the check; missing observations remain
 visible and reject the check when named in `required_artifacts`. With the profile
 disabled, existing behavior and bundles remain valid.
 
+### Cargo and Verus producers
+
+The [Rust execution example](../examples/rust-execution/README.md) includes
+source-local OFT bindings, the supported invocations and a multi-report scope.
+For Verus, set `tests.verus_reports` to a nonempty, unique subset of the
+configured JUnit report paths. Each selected path requires a fresh sibling
+named `<report>.verus.json`. The checker retains the original bytes as
+`verus-N.json` using the JUnit report's one-based index. On successful
+checks, verification requires the native file, its recorded digest, a
+successful whole-crate outcome, and matching individual JUnit function results.
+This optional field is available only for JUnit scopes.
+
 ### Bundle contents
 
 | Files | Contents |

@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from junitparser import Attr, JUnitXml, TestCase
 
 from .common import CheckError, run, xml_tree
+from .verus_junit import validate_retained
 
 
 class ReportCase(TestCase):
@@ -98,6 +99,16 @@ def merge_reports(reports):
     return merged
 
 
+def verus_report_pairs(config):
+    """Resolve trusted report paths to their deterministic retained filenames."""
+    reports = config.get("reports", [config.get("report")])
+    return {
+        name: (f"tests-{i}.xml" if "reports" in config else "tests.xml", f"verus-{i}.json")
+        for i, name in enumerate(reports, 1)
+        if name in config.get("verus_reports", [])
+    }
+
+
 def execute_tests(snap, scope, out):
     config = scope["tests"]
     names = (
@@ -107,7 +118,8 @@ def execute_tests(snap, scope, out):
     )
     reports = [snap.root / name for name in names]
     # [impl->req~ib-fresh-reports~1]
-    for report in reports:
+    native = verus_report_pairs(config)
+    for report in [*reports, *(snap.root / (name + ".verus.json") for name in native)]:
         if report.exists() or report.is_symlink():
             raise CheckError(
                 "Configured JUnit report already exists in candidate; require a fresh generated report"
@@ -128,6 +140,15 @@ def execute_tests(snap, scope, out):
     target = out / "tests.xml"
     try:
         retained = []
+        for name, (_, artifact) in native.items():
+            path = snap.root / (name + ".verus.json")
+            if (
+                path.is_symlink()
+                or not path.is_file()
+                or not path.resolve().is_relative_to(snap.root)
+            ):
+                raise CheckError(f"Missing or unsafe native Verus report for {name}")
+            shutil.copyfile(path, out / artifact)
         # [impl->req~ib-fresh-reports~1]
         for index, (name, report) in enumerate(zip(names, reports), 1):
             if (
@@ -141,7 +162,11 @@ def execute_tests(snap, scope, out):
             copy = out / f"tests-{index}.xml" if "reports" in config else target
             shutil.copyfile(report, copy)
             retained.append({"source": name, "artifact": copy.name})
-            junit_counts(copy)  # Preserve per-report completeness checks before combining.
+            counts = junit_counts(copy)  # Validate originals before combining.
+            if name in native and not (
+                counts["errors"] or counts["failed"] or counts.get("suite_failed")
+            ):
+                validate_retained(copy, (out / native[name][1]).read_bytes())
         if "reports" in config:
             result["reports"] = retained
             merged = merge_reports((r["source"], out / r["artifact"]) for r in retained)
