@@ -270,6 +270,29 @@ selection never subtracts a file already included in `inputs`. This field is
 bound to the trusted scope and evidence digest. It does not grant specification
 rewrite permission during recovery, create requirements, or satisfy test links.
 
+Optional `review_globs` is a nonempty list of unique, case-sensitive patterns.
+Each pattern matches the complete repository-relative POSIX path in either
+captured manifest. Within a component, `*` matches zero or more characters and
+`?` matches one. A whole `**` component matches zero or more path components.
+Wildcards include leading dots. Brackets, embedded double stars, NUL, escapes
+and noncanonical paths are rejected. Other characters are literal. There is no
+shell expansion, negation or implicit directory recursion.
+
+For example, `"review_globs": ["**/*.rs"]` selects `build.rs`, `tests/api.rs`,
+`examples/demo.rs`, `benches/io.rs` and nested Rust files anywhere. Add
+`"**/Cargo.toml"` if manifests also require review. Existing literal
+`review_paths`, specification paths and test paths all remain additive. A prose
+edit can still require review when one of those selections covers it.
+
+The CLI and Python's `intentbond.review.changes(base, candidate, before, after, scope)`
+use the same selection. For a commit comparison, resolve both revisions, load
+`load_baseline_scope(repo, base_commit)`, and pass that scope and the two
+snapshots unchanged. A move contributes its selected old and new paths as a
+deletion and addition. Unselected paths still participate in both manifest
+identities. Candidate edits to the scope take effect only after baseline adoption.
+The resulting record identifies changes requiring review. The caller retains
+human acceptance authority.
+
 `required_coverage` selects artifact types and their minimum `Needs`. Selected
 artifacts must originate within specification paths. An empty needs list is
 valid. To use a design chain, for example, select `{"req": ["dsn"], "dsn":
@@ -493,6 +516,16 @@ checks, verification requires the native file, its recorded digest, a
 successful whole-crate outcome, and matching individual JUnit function results.
 This optional field is available only for JUnit scopes.
 
+To share compilation within one check, set `"cargo_build": {}` inside `tests`
+and add `--use-captured-build` to each participating `intentbond.cargo_junit`
+invocation. The checker builds a locked workspace archive before starting
+`tests.command`. Optional `packages` (a list of package names) and `features`
+(a Cargo feature string) select the build once. A producer requesting the
+archive rejects its own `--package` or `--features`. Each invocation still
+accepts its own bindings, selection, fixture environment and fresh report path.
+The fresh-target producer remains the default. See the
+[migration and build trust boundary](../examples/rust-execution/README.md#reuse-one-captured-build).
+
 ### Bundle contents
 
 | Files | Contents |
@@ -563,7 +596,7 @@ Rerun checks after repairs or shared-branch updates that change the candidate.
 
 ## Source, tracing and review boundaries
 
-New check evidence and `review.json` include `source_boundaries`: a sorted inventory of changed paths from the complete captured base/candidate manifests. Each path records addition/deletion/modification, membership in `inputs`, and selection by `specification_paths`, `test_paths`, or optional `review_paths` (reported as `specification`, `test`, or `review`, in that precedence order). Counts are named for those exact meanings. Requirement-change entries and file-change entries in `review.changes` can describe the same path, so their count is not a distinct changed-file count.
+New check evidence and `review.json` include `source_boundaries`: a sorted inventory of changed paths from the complete captured base/candidate manifests. Each path records addition/deletion/modification, membership in `inputs`, and selection by `specification_paths`, `test_paths`, or additional `review_paths` and `review_globs` (reported as `specification`, `test`, or `review`, in that precedence order). Counts are named for those exact meanings. Requirement-change entries and file-change entries in `review.changes` can describe the same path, so their count is not a distinct changed-file count.
 
 A file outside the selected semantic-review roots is still included in full source identity when it belongs to the captured manifest. Editing it after a check invalidates source verification. This inventory does not expand the frozen scope, infer missing requirements, or certify the meaning of excluded files. The ordinary full candidate diff may still require review by the consuming workflow.
 
@@ -577,7 +610,7 @@ Source identity, OFT structural coverage, executed assertions and semantic appro
 Optional `trace_exclude` is a nonempty, unique list of literal relative paths or
 directory prefixes within `inputs`. It affects only OFT import. Files remain in
 the captured source, available to tests, and selected for review according to
-`specification_paths`, `test_paths` and `review_paths`. For example, import `tests`
+`specification_paths`, `test_paths`, `review_paths` and `review_globs`. For example, import `tests`
 and exclude `tests/fixtures` to keep fixture application IDs out of the product
 graph while reviewing fixture changes. This is trusted scope policy; editing a
 candidate scope does not change the policy used for a check.

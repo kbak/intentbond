@@ -4,13 +4,119 @@ from test_workflow import WorkflowFixture
 
 from intentbond.check_output import render_check
 from intentbond.common import CheckError, digest, read_json, write_json
-from intentbond.config import validate_scope
+from intentbond.config import load_baseline_scope, validate_scope
 from intentbond.evidence import statement
 from intentbond.explain import explain, render_explanation
+from intentbond.review import changes, review_selection
 from intentbond.runner import verify
+from intentbond.snapshot import snapshot
 
 
 class BoundaryTests(WorkflowFixture):
+    # [utest->req~ib-review-selection~1]
+    def test_review_globs_bind_both_sides_of_moves_to_the_baseline(self):
+        policy = self.repo / ".intentbond/scope.json"
+        scope = read_json(policy)
+        scope.update(review_paths=["literal/*.toml"], review_globs=["**/*.rs"])
+        write_json(policy, scope)
+
+        def create(name):
+            path = self.repo / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(name)
+
+        for name in ("old.rs", "into.txt", "out.rs", "from.rs"):
+            create(name)
+        self.commit()
+        base = self.git("rev-parse", "HEAD").strip()
+        create("notes.md")
+        code, stdout, _ = self.run_cli("check", "--base", base)
+        self.assertEqual(code, 0, stdout)
+
+        added = [
+            "build.rs",
+            "tests/root.rs",
+            "examples/example.rs",
+            "benches/bench.rs",
+            ".x/a/b/c.rs",
+        ]
+        for name in added:
+            create(name)
+        (self.repo / "old.rs").unlink()
+        for old, new in (("into.txt", "into.rs"), ("out.rs", "out.txt"), ("from.rs", "to.rs")):
+            (self.repo / old).rename(self.repo / new)
+        scope.pop("review_globs")
+        write_json(policy, scope)
+        self.commit()
+        head = self.git("rev-parse", "HEAD").strip()
+        out = self.root / "review-evidence"
+        code, stdout, _ = self.run_cli(
+            "check", "--base", base, "--candidate", head, "--out", str(out)
+        )
+        self.assertEqual(code, 4, stdout)
+        before = snapshot(self.repo, base, self.root / "before")
+        after = snapshot(self.repo, head, self.root / "after")
+        selected = changes(before, after, [], [], load_baseline_scope(self.repo, base))
+        review = read_json(out / "review.json")
+        self.assertEqual(review["changes"], selected)
+        self.assertEqual(review["base_commit"], base)
+        self.assertEqual(review["base_sha256"], before.sha256)
+        self.assertEqual(review["candidate_sha256"], after.sha256)
+        self.assertEqual(read_json(out / "evidence.json")["predicate"]["candidate"]["commit"], head)
+        self.assertEqual(
+            {c["path"] for c in selected},
+            set(added) | {"old.rs", "into.rs", "out.rs", "from.rs", "to.rs"},
+        )
+        boundaries = {p["path"]: p for p in review["source_boundaries"]["paths"]}
+        self.assertEqual(boundaries["out.rs"]["change"], "deleted")
+        self.assertEqual(boundaries["into.rs"]["change"], "added")
+        self.assertEqual(boundaries["tests/root.rs"]["semantic_review_selection"], "test")
+        self.assertIsNone(boundaries["out.txt"]["semantic_review_selection"])
+        self.assertEqual(
+            verify(self.repo, None, base, head, out / "evidence.json", allow_pending_review=True)[
+                "review"
+            ],
+            "required",
+        )
+
+    def test_anchored_glob_grammar_and_literal_root_compatibility(self):
+        original = read_json(self.scope)
+        for globs in (
+            [],
+            ["."],
+            ["../*.rs"],
+            ["/a"],
+            ["a//b"],
+            ["./a"],
+            [".git/**"],
+            ["a**b"],
+            ["a["],
+            ["a\\b"],
+            ["a\x00b"],
+            ["a", "a"],
+            "*",
+            [False],
+        ):
+            with self.subTest(globs=globs), self.assertRaises(CheckError):
+                validate_scope({**original, "review_globs": globs})
+        scope = validate_scope(
+            {
+                **original,
+                "review_paths": ["literal/*.rs"],
+                "review_globs": ["lib/**/case?.rs", "*.toml"],
+            }
+        )
+        for name in ("lib/case1.rs", "lib/a/b/case_.rs", "x.toml", "literal/*.rs/child"):
+            self.assertEqual(review_selection(name, scope), "review", name)
+        for name in (
+            "x/lib/case1.rs",
+            "lib/case12.rs",
+            "lib/a/case1.RS",
+            "x/t.toml",
+            "literal/test.rs",
+        ):
+            self.assertIsNone(review_selection(name, scope), name)
+
     def test_review_only_fixtures_trigger_bound_review_without_importing_examples(self):
         path = self.repo / "fixtures/example.md"
         path.parent.mkdir()

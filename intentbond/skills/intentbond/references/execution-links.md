@@ -204,6 +204,9 @@ still requires review of the assertion and its relation to the requirement.
 
 The [Rust execution example](https://github.com/kbak/intentbond/tree/main/examples/rust-execution)
 provides the qualified runners, source-local bindings and a copyable scope.
+For several fixture runs in the same capture, the trusted scope can set
+`tests.cargo_build` to `{}` and each Cargo invocation can select
+`--use-captured-build`. Each fixture still needs its own fresh report.
 Use the package-qualified nextest binary ID and full test name for Cargo, and
 the whole-crate Verus function identity for proofs. Specify Verus JUnit paths
 in `tests.verus_reports` for retained native evidence. The existing

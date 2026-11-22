@@ -1,6 +1,7 @@
 """Report source selection boundaries without expanding policy or inferring approval."""
 
 from .common import CheckError, read_json, within
+from .review import review_selection
 
 
 # [impl->req~ib-boundary-report~1]
@@ -12,15 +13,6 @@ def inventory(base_manifest, candidate_manifest, scope):
     for path in sorted(before.keys() | after.keys()):
         if before.get(path) == after.get(path):
             continue
-        selection = (
-            "specification"
-            if within(path, scope["specification_paths"])
-            else "test"
-            if within(path, scope["test_paths"])
-            else "review"
-            if within(path, scope.get("review_paths", []))
-            else None
-        )
         paths.append(
             {
                 "path": path,
@@ -30,7 +22,7 @@ def inventory(base_manifest, candidate_manifest, scope):
                 if path not in after
                 else "modified",
                 "tracing_input": within(path, scope["inputs"]),
-                "semantic_review_selection": selection,
+                "semantic_review_selection": review_selection(path, scope),
             }
         )
     selected = sum(p["semantic_review_selection"] is not None for p in paths)
@@ -47,6 +39,11 @@ def inventory(base_manifest, candidate_manifest, scope):
         + (
             " Additional review_paths select semantic review without adding tracing inputs."
             if scope.get("review_paths")
+            else ""
+        )
+        + (
+            " Review globs select matching captured paths for semantic review."
+            if scope.get("review_globs")
             else ""
         ),
     }

@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import __version__, boundaries
+from .cargo_build import validate_build_evidence
 from .common import CheckError, canonical, digest, read_json, within, write_json, xml_tree
 from .config import load_baseline_scope, load_scope
 from .evidence import check_artifacts, read_statement, statement, test_statement
@@ -248,6 +249,8 @@ def verify(
     )
     if scope["tests"].get("format", "junit") == "junit":
         required.add("tests.xml")
+    if "cargo_build" in scope["tests"]:
+        required.add("cargo-build.log")
     reports = [
         {"source": name, "artifact": f"tests-{index}.xml"}
         for index, name in enumerate(scope["tests"].get("reports", []), 1)
@@ -256,6 +259,13 @@ def verify(
     native = verus_report_pairs(scope["tests"])
     required.update(artifact for _, artifact in native.values())
     artifacts = check_artifacts(evidence, directory, required)
+    if "cargo_build" in scope["tests"]:
+        validate_build_evidence(
+            evidence["tests"].get("cargo_build"),
+            scope["tests"]["cargo_build"],
+            evidence["candidate"]["sha256"],
+            directory / "tests.xml",
+        )
     for junit, artifact in native.values():
         validate_retained(directory / junit, (directory / artifact).read_bytes())
     test_format = scope["tests"].get("format", "junit")

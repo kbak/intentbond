@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 
 from junitparser import Attr, JUnitXml, TestCase
 
+from .cargo_build import BUILD_ENV, run_with_build, validate_build_evidence
 from .common import CheckError, run, xml_tree
 from .verus_junit import validate_retained
 
@@ -128,14 +129,20 @@ def execute_tests(snap, scope, out):
             raise CheckError("JUnit report must stay inside the candidate")
         report.parent.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
+    env.pop(BUILD_ENV, None)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     # Commands using PROJECT_DIR must target the captured candidate.
     env["PROJECT_DIR"] = str(snap.root)
-    result = run(config["command"], snap.root, out / "tests.log", config["timeout_seconds"], env)
+    if "cargo_build" in config:
+        result = run_with_build(snap, config, out, env)
+    else:
+        result = run(
+            config["command"], snap.root, out / "tests.log", config["timeout_seconds"], env
+        )
     result["format"] = config.get("format", "junit")
     result["level"] = "suite" if reports else "command"
     # [impl->req~ib-command-results~1]
-    if not reports:
+    if not reports or ("cargo_build" in result and result["cargo_build"]["status"] != "passed"):
         return result
     target = out / "tests.xml"
     try:
@@ -172,6 +179,10 @@ def execute_tests(snap, scope, out):
             merged = merge_reports((r["source"], out / r["artifact"]) for r in retained)
             ET.ElementTree(merged).write(target, encoding="utf-8", xml_declaration=True)
         result["report"] = target.name
+        if "cargo_build" in config:
+            validate_build_evidence(
+                result["cargo_build"], config["cargo_build"], snap.sha256, target
+            )
         counts = junit_counts(target)
         result["counts"] = counts
         if not counts_pass(counts, scope):

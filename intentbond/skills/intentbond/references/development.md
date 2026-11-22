@@ -24,7 +24,8 @@ local JAR path.
 ## Review policy
 
 Use trusted `review_paths` for implementation roots when code-only changes should
-leave review pending. Candidate scope edits remain proposals until adopted through
+leave review pending. Use `review_globs` for files matching complete paths, such
+as `["**/*.rs"]` for root and nested Rust source. Candidate scope edits remain proposals until adopted through
 the caller's process. Keep revision enforcement optional; strict imported-content
 revision policy also applies to editorial edits. Review meanings independently of
 IDs or structural coverage. See [identity and exact versions](semantics.md#identity-and-exact-versions).

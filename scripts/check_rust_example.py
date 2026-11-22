@@ -7,6 +7,7 @@ import shutil
 import socketserver
 import subprocess
 import threading
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest.mock import patch
 
@@ -15,6 +16,70 @@ from intentbond.oft import default_jar
 from intentbond.runner import check, verify
 
 EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "rust-execution"
+
+
+# [utest->req~ib-cargo-build-reuse~1]
+def qualify_reuse(repo, base, out):
+    policy = read_json(repo / ".intentbond/scope.json")
+    tests = policy["tests"]
+    tests["cargo_build"] = {}
+    tests["reports"].append("second-service.xml")
+    scope = out / "reuse-scope.json"
+    scope.write_text(json.dumps(policy))
+    driver = repo / "run.py"
+    original = driver.read_text()
+    counter = out / "compilations"
+    (repo / "build.rs").write_text(
+        "fn main() { use std::io::Write; let mut f = std::fs::OpenOptions::new()"
+        '.append(true).create(true).open(std::env::var("BUILD_COUNTER").unwrap()).unwrap();'
+        'writeln!(f, "compiled").unwrap(); }\n'
+    )
+    driver_with_reuse = original.replace(
+        '"intentbond.cargo_junit",', '"intentbond.cargo_junit", "--use-captured-build",'
+    )
+    repeat = 'commands.append([*cargo, "--report", "second-service.xml", "--ignored", *service])'
+    driver.write_text(driver_with_reuse.replace("results = ", repeat + "\nresults = "))
+    evidence = out / "captured-build"
+    try:
+        with patch.dict(os.environ, {"BUILD_COUNTER": str(counter)}):
+            passing = out / "captured-build-passing"
+            result = check(repo, scope, base, "worktree", passing, default_jar())
+            assert result["status"] == "review_required", result
+            verify(
+                repo, scope, base, "worktree", passing / "evidence.json", allow_pending_review=True
+            )
+            assert counter.read_text().splitlines() == ["compiled"]
+            # Change only the runtime fixture for the repeated execution.
+            driver.write_text(
+                driver.read_text().replace(
+                    "commands.append([*cargo",
+                    'commands.append(["env", "EXAMPLE_READY_ADDR=invalid", *cargo',
+                )
+            )
+            result = check(repo, scope, base, "worktree", evidence, default_jar())
+        assert result["status"] == "rejected", result
+        assert counter.read_text().splitlines() == ["compiled", "compiled"]
+        suites = [ET.parse(evidence / f"tests-{i}.xml").getroot() for i in (1, 2, 4)]
+        archives = [
+            s.find("properties/property[@name='build_archive_sha256']").get("value") for s in suites
+        ]
+        assert len(set(archives)) == 1
+        for suite in suites:
+            assert (
+                suite.find("properties/property[@name='build_candidate_sha256']").get("value")
+                == result["candidate"]["sha256"]
+            )
+        first = suites[1].find("testcase")
+        second = suites[2].find("testcase")
+        assert first.get("name") == second.get("name") == "tests::round_trip"
+        assert first.find("failure") is None and second.find("failure") is not None
+        print(
+            "captured build: one compilation, separate passing and failing fixture observations",
+            flush=True,
+        )
+    finally:
+        driver.write_text(original)
+        (repo / "build.rs").unlink()
 
 
 class Readiness(socketserver.StreamRequestHandler):
@@ -81,6 +146,7 @@ def qualify(out):
                 text=True,
             )
             assert json.loads(explanation)["linked_test_execution"] == "passed"
+            qualify_reuse(repo, base, out)
 
             native = out / "passing" / "verus-3.json"
             raw = native.read_bytes()

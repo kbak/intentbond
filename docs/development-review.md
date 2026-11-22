@@ -12,6 +12,11 @@ also leave review pending, for example `"review_paths": ["src"]`. This does not 
 trace inputs. IntentBond's own scope selects its `intentbond` implementation root,
 examples and AGENTS.md in addition to specification/test paths.
 
+To review Rust code at any depth, including root `build.rs`, replace an extra
+whole-tree `review_paths` root with `"review_globs": ["**/*.rs"]`. Retain any
+other literal paths requiring review. The public `intentbond.review.changes` API
+uses the same patterns when given the baseline scope.
+
 Scope changes are proposals until adopted through the project's review process.
 Check the proposal against the existing accepted baseline; subsequent work uses
 the new accepted baseline. Editing the candidate’s `.intentbond/scope.json` cannot lower or raise the

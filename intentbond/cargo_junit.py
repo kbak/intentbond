@@ -9,11 +9,10 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from .cargo_build import build_args, captured_archive, versions
 from .common import CheckError, parse_json, xml_tree
 from .rust_junit import bindings, command_property, fresh_output, property_value, write_report
 from .testing import junit_counts
-
-VERSION = "0.9.152"
 
 
 def inventory(raw):
@@ -103,7 +102,6 @@ def reconcile(suite, native, cases, selected, skipped, links):
 
 def run_nextest(args, suite, scratch):
     links = bindings(args.bindings, "cargo")
-    # Both inventory and execution use the captured workspace and one fresh build directory.
     target = scratch / "target"
     config = scratch / "nextest.toml"
     native = scratch / "results.xml"
@@ -113,35 +111,22 @@ def run_nextest(args, suite, scratch):
         'report-skipped = "none"\nstore-failure-output = false\n'
     )
     prefix = ["cargo", "nextest"]
-    versions = {}
-    for key, cmd in (
-        ("nextest", [*prefix, "--version"]),
-        ("rustc", ["rustc", "--version"]),
-        ("cargo", ["cargo", "--version"]),
-    ):
-        versions[key] = subprocess.check_output(cmd, text=True).partition("\n")[0]
-        if not versions[key]:
-            raise CheckError(f"Missing {key} version")
-        property_value(suite, key, versions[key])
-    if versions["nextest"].split()[:2] != ["cargo-nextest", VERSION]:
-        raise CheckError(f"Unsupported cargo-nextest version; expected {VERSION}")
-    common = [
-        "--locked",
-        "--target-dir",
-        str(target),
-        "--config-file",
-        str(config),
-        "--user-config-file",
-        "none",
-        "--profile",
-        "ib",
-    ]
-    for package in args.package:
-        common.extend(["--package", package])
-    if not args.package:
-        common.append("--workspace")
-    if args.features:
-        common.extend(["--features", args.features])
+    tools = versions(Path.cwd())
+    for key, value in tools.items():
+        property_value(suite, key, value)
+    if args.use_captured_build:
+        if args.package or args.features is not None:
+            raise CheckError(
+                "Select packages and features in tests.cargo_build when using its archive"
+            )
+        archive, binding = captured_archive(scratch, tools)
+        common = ["--archive-file", str(archive)]
+        property_value(suite, "build_archive_sha256", binding["archive_sha256"])
+        property_value(suite, "build_candidate_sha256", binding["candidate"]["sha256"])
+        property_value(suite, "build_configuration", json.dumps(binding["build"], sort_keys=True))
+    else:
+        common = build_args(target, args.package, args.features)
+    common.extend(["--config-file", str(config), "--user-config-file", "none", "--profile", "ib"])
     env = {**os.environ, "CARGO_BUILD_BUILD_DIR": str(target)}
     discover = prefix + ["list", *common, "--run-ignored", "all", "--message-format", "json"]
     property_value(suite, "discovery_command", json.dumps(discover))
@@ -167,6 +152,11 @@ def main(argv=None):
     parser.add_argument("--bindings", action="append", default=[], metavar="RS_FILE")
     parser.add_argument("--package", action="append", default=[])
     parser.add_argument("--features")
+    parser.add_argument(
+        "--use-captured-build",
+        action="store_true",
+        help="Run the build prepared by this check's tests.cargo_build configuration",
+    )
     group = parser.add_mutually_exclusive_group()
     for option in ("--ignored", "--exclude"):
         group.add_argument(
@@ -185,7 +175,7 @@ def main(argv=None):
             ValueError,
             KeyError,
             TypeError,
-            subprocess.CalledProcessError,
+            subprocess.SubprocessError,
         ) as exc:
             ET.SubElement(suite, "error", message=str(exc))
             print(str(exc), file=sys.stderr)

@@ -402,7 +402,7 @@ Existing assertions: [test_changed_promise_remains_reviewable_and_needs_higher_r
 ### Keep selected semantic changes pending review
 `req~ib-change-review~1`
 
-If automated checks pass, changes within selected specification paths, test paths or additional review_paths require external review, including prose and file changes beyond requirement metadata. Passing tests and --allow-pending-review do not clear that review requirement.
+If automated checks pass, changes selected by specification paths, test paths, additional review_paths or review_globs require external review, including prose and file changes beyond requirement metadata. Passing tests and --allow-pending-review do not clear that review requirement.
 
 Covers:
 - `intent~ib-review-decisions~1`
@@ -954,7 +954,7 @@ Evidence limit: The adapter uses pinned producer internals. The existing tests c
 ### Select extra review paths independently of tracing
 `req~ib-review-selection~1`
 
-Optional review_paths selects additional literal repository-relative paths for semantic review and is bound to the trusted scope and evidence identity. It does not add or subtract OFT inputs, create requirements, or satisfy trace links. Specification and test selections retain their existing containment rules.
+Optional review_paths selects literal repository-relative roots. Optional review_globs selects complete repository-relative paths, including root and nested files. Both selections apply to the union of base and candidate manifests under the trusted scope in the CLI and review API. Each selected side of a move requires review. Source and scope identities cover the full comparison. Specification and test selections retain their containment rules, and tracing inputs stay independent of additional review selection.
 
 Covers:
 - `intent~ib-review-decisions~1`
@@ -1421,6 +1421,20 @@ ignored tests requires a unique discovered ignored case. Ordinary runs retain
 in-scope ignores. Duplicate identities, interrupted or incomplete runs, build
 errors and failed tests cannot produce passing suite evidence. Explicit source
 bindings supply revision-qualified OFT IDs to fresh JUnit reports.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest
+
+### Reuse Cargo compilation inside a capture
+`req~ib-cargo-build-reuse~1`
+
+The trusted scope may prepare a locked Cargo build for one captured candidate
+and build configuration. Participating producers consume only the matching
+private archive during that check. Each discovers and executes its requested
+tests anew and reconciles its own fresh report. Fixture settings may vary
+between executions. Without opt-in each producer uses a fresh target.
 
 Covers:
 - `intent~ib-trust-evidence~1`

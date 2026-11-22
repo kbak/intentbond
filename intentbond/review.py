@@ -1,7 +1,36 @@
 import difflib
+from fnmatch import fnmatchcase
 
 from .common import canonical, digest, within
 from .snapshot import read_entry
+
+
+def matches_glob(path, pattern):
+    """Match complete POSIX paths. Positions are reachable path-component offsets."""
+    parts = path.split("/")
+    positions = {0}
+    for component in pattern.split("/"):
+        if not positions:
+            return False
+        if component == "**":
+            positions = range(min(positions), len(parts) + 1)
+        else:
+            positions = {
+                i + 1 for i in positions if i < len(parts) and fnmatchcase(parts[i], component)
+            }
+    return len(parts) in positions
+
+
+# [impl->req~ib-review-selection~1]
+def review_selection(path, scope):
+    for field, label in (("specification_paths", "specification"), ("test_paths", "test")):
+        if within(path, scope[field]):
+            return label
+    if within(path, scope.get("review_paths", [])) or any(
+        matches_glob(path, pattern) for pattern in scope.get("review_globs", [])
+    ):
+        return "review"
+    return None
 
 
 def review_diff(base, candidate, changed):
@@ -43,9 +72,8 @@ def changes(base, candidate, before, after, scope):
     right = {f["path"]: f for f in candidate.manifest}
     # [impl->req~ib-change-review~1]
     # [impl->req~ib-review-selection~1]
-    roots = scope["specification_paths"] + scope["test_paths"] + scope.get("review_paths", [])
     for path in sorted(left.keys() | right.keys()):
-        if within(path, roots) and left.get(path) != right.get(path):
+        if left.get(path) != right.get(path) and review_selection(path, scope):
             result.append(
                 {"kind": "file", "path": path, "before": left.get(path), "after": right.get(path)}
             )
