@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "rust-execution",
+  "inputs": ["requirements.md", "src", "tests", "proofs", "run.py", "Cargo.toml", "Cargo.lock"],
+  "specification_paths": ["requirements.md"],
+  "test_paths": ["src", "tests", "proofs", "run.py"],
+  "required_coverage": {"req": ["utest"]},
+  "tests": {
+    "command": ["python3", "run.py"],
+    "format": "junit",
+    "reports": ["ordinary.xml", "service.xml", "proofs.xml"],
+    "verus_reports": ["proofs.xml"],
+    "timeout_seconds": 180,
+    "execution_links": {
+      "format": "junit-properties-v1",
+      "artifact_types": ["utest", "proof"],
+      "required_artifacts": ["utest~addition", "utest~service", "proof~increment"]
+    }
+  }
+}

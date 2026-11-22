@@ -199,3 +199,13 @@ that test artifact, and rejects the check when that artifact is required. This r
 cannot detect an omitted parameter case, an insufficient search budget, a narrowed
 generator, or a producer that falsely reports execution. A linked `passed` outcome
 still requires review of the assertion and its relation to the requirement.
+
+## Cargo and Verus
+
+The [Rust execution example](https://github.com/kbak/intentbond/tree/main/examples/rust-execution)
+provides the qualified runners, source-local bindings and a copyable scope.
+Use the package-qualified nextest binary ID and full test name for Cargo, and
+the whole-crate Verus function identity for proofs. Specify Verus JUnit paths
+in `tests.verus_reports` for retained native evidence. The existing
+`execution_links` profile checks exact revisions within `test_paths`, and
+`required_artifacts` enforces passing observations across all configured reports.

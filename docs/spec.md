@@ -1411,3 +1411,34 @@ formatting. The standalone offline demo checks local repair, a second adversaria
 round, protected edits and incomplete responses. This is reuse across three
 qualified fixtures, not automatic oracle construction or a measured accuracy
 advantage over an ordinary agent.
+
+### Link Cargo workspace test results
+`req~ib-cargo-evidence~1`
+
+The opt-in nextest producer reconciles the selected package-qualified binary and
+full test identities with discovery from the same build. Exact selection of
+ignored tests requires a unique discovered ignored case. Ordinary runs retain
+in-scope ignores. Duplicate identities, interrupted or incomplete runs, build
+errors and failed tests cannot produce passing suite evidence. Explicit source
+bindings supply revision-qualified OFT IDs to fresh JUnit reports.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest
+
+### Retain Verus function verification evidence
+`req~ib-verus-evidence~1`
+
+The opt-in Verus producer projects named function outcomes from a supported
+whole-crate native report onto JUnit. Failed runs retain command failure,
+missing functions stay unobserved, and malformed or ambiguous results cannot
+pass. A scope selecting native Verus retention binds the original JSON and its
+JUnit projection to the same captured candidate. Verification checks both
+against retained evidence. A passing observation concerns the function under
+the assumptions used by Verus.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest

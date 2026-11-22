@@ -18,7 +18,8 @@ from .oft import OFT_SHA256, OFT_VERSION, policy_diagnostics, trace, validate_ja
 from .review import changes, review_diff, review_record, revision_diagnostics
 from .snapshot import changed_source, repository, resolve_commit, snapshot
 from .summary import render_summary
-from .testing import counts_pass, execute_tests, junit_counts, merge_reports
+from .testing import counts_pass, execute_tests, junit_counts, merge_reports, verus_report_pairs
+from .verus_junit import validate_retained
 
 
 def source_digest():
@@ -252,7 +253,11 @@ def verify(
         for index, name in enumerate(scope["tests"].get("reports", []), 1)
     ]
     required.update(r["artifact"] for r in reports)
+    native = verus_report_pairs(scope["tests"])
+    required.update(artifact for _, artifact in native.values())
     artifacts = check_artifacts(evidence, directory, required)
+    for junit, artifact in native.values():
+        validate_retained(directory / junit, (directory / artifact).read_bytes())
     test_format = scope["tests"].get("format", "junit")
     if (
         evidence["tests"].get("format") != test_format

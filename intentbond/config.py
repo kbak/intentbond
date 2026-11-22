@@ -101,7 +101,15 @@ def validate_scope(scope):
     if (
         not isinstance(tests, dict)
         or set(tests)
-        - {"command", "report", "reports", "timeout_seconds", "format", "execution_links"}
+        - {
+            "command",
+            "report",
+            "reports",
+            "timeout_seconds",
+            "format",
+            "execution_links",
+            "verus_reports",
+        }
         or {"command", "timeout_seconds"} - set(tests)
         or tests.get("format", "junit") not in {"junit", "command"}
     ):
@@ -125,7 +133,19 @@ def validate_scope(scope):
                 raise CheckError("JUnit report must name a file")
         if len(set(reports)) != len(reports):
             raise CheckError("Duplicate JUnit report paths")
-    elif "report" in tests or "reports" in tests:
+        if "verus_reports" in tests:
+            native = tests["verus_reports"]
+            if (
+                not isinstance(native, list)
+                or not native
+                or any(not isinstance(name, str) or name not in reports for name in native)
+                or len(set(native)) != len(native)
+                or any(name + ".verus.json" in reports for name in native)
+            ):
+                raise CheckError(
+                    "tests.verus_reports must select unique configured JUnit reports with distinct native paths"
+                )
+    elif any(key in tests for key in ("report", "reports", "verus_reports")):
         raise CheckError("command format records execution/logs and does not consume a report")
     if "execution_links" in tests:
         links = tests["execution_links"]

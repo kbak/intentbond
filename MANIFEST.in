@@ -8,3 +8,4 @@ recursive-include tests *.py
 recursive-include scripts *.py
 recursive-include .github/workflows *.yml
 recursive-include requirements *.in *.txt
+recursive-include examples/rust-execution *.rs Cargo.toml Cargo.lock
