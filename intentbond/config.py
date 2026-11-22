@@ -47,7 +47,9 @@ def validate_scope(scope):
     }
     if (
         not isinstance(scope, dict)
-        or set(scope) - required - {"allow_empty", "policy", "review_paths", "trace_exclude"}
+        or set(scope)
+        - required
+        - {"allow_empty", "policy", "review_paths", "review_globs", "trace_exclude"}
         or required - set(scope)
     ):
         raise CheckError("Scope has unknown or missing fields; see docs/contract.md")
@@ -58,7 +60,14 @@ def validate_scope(scope):
     if type(scope.get("allow_empty", False)) is not bool:
         raise CheckError("allow_empty must be boolean")
     # [impl->req~ib-review-selection~1]
-    for key in ("inputs", "specification_paths", "test_paths", "review_paths", "trace_exclude"):
+    for key in (
+        "inputs",
+        "specification_paths",
+        "test_paths",
+        "review_paths",
+        "review_globs",
+        "trace_exclude",
+    ):
         if key not in scope:
             continue
         values = scope[key]
@@ -66,6 +75,14 @@ def validate_scope(scope):
             raise CheckError(f"{key} must be a nonempty path list")
         for value in values:
             relative_path(value)
+            if key == "review_globs" and (
+                value == "."
+                or "\x00" in value
+                or "[" in value
+                or "]" in value
+                or any("**" in part and part != "**" for part in value.split("/"))
+            ):
+                raise CheckError(f"Unsupported review glob: {value!r}")
         if len(set(values)) != len(values):
             raise CheckError(f"Duplicate paths in {key}")
     # [impl->req~ib-trace-exclusions~1]
@@ -108,6 +125,7 @@ def validate_scope(scope):
             "timeout_seconds",
             "format",
             "execution_links",
+            "cargo_build",
             "verus_reports",
         }
         or {"command", "timeout_seconds"} - set(tests)
@@ -122,6 +140,30 @@ def validate_scope(scope):
     ):
         raise CheckError("tests.command must be a nonempty argv array (no implicit shell)")
     if tests.get("format", "junit") == "junit":
+        if "cargo_build" in tests:
+            build = tests["cargo_build"]
+            if not isinstance(build, dict) or set(build) - {"packages", "features"}:
+                raise CheckError("tests.cargo_build accepts packages and features")
+            packages = build.get("packages", [])
+            if (
+                not isinstance(packages, list)
+                or any(
+                    not isinstance(name, str)
+                    or not name.strip()
+                    or "\x00" in name
+                    or name.startswith("-")
+                    for name in packages
+                )
+                or len(set(packages)) != len(packages)
+            ):
+                raise CheckError("cargo_build.packages must be a unique list of package names")
+            if "features" in build and (
+                not isinstance(build["features"], str)
+                or not build["features"].strip()
+                or "\x00" in build["features"]
+                or build["features"].startswith("-")
+            ):
+                raise CheckError("cargo_build.features must be a Cargo feature string")
         if ("report" in tests) == ("reports" in tests):
             raise CheckError("JUnit tests require either report or reports")
         reports = tests.get("reports", [tests.get("report")])
@@ -145,7 +187,7 @@ def validate_scope(scope):
                 raise CheckError(
                     "tests.verus_reports must select unique configured JUnit reports with distinct native paths"
                 )
-    elif any(key in tests for key in ("report", "reports", "verus_reports")):
+    elif any(key in tests for key in ("report", "reports", "verus_reports", "cargo_build")):
         raise CheckError("command format records execution/logs and does not consume a report")
     if "execution_links" in tests:
         links = tests["execution_links"]

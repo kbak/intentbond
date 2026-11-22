@@ -168,8 +168,8 @@ it does not include all source-capture overhead or measure agent effort.
 | 1, 2, 3 | Validation failed, could not run, or had an empty scope. |
 
 Review the full diff. `review.patch` contains changes selected by specification
-paths, test paths and optional `review_paths`;
-passing checks do not approve them.
+paths, test paths, literal `review_paths` and repository-relative `review_globs`.
+Passing checks leave human approval to the caller.
 
 Inspect a requirement and its links in saved evidence:
 

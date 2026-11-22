@@ -20,7 +20,7 @@ and checksum verification steps.
 Inside `ib check`, the command runs in an exported candidate. Keep Cargo.lock
 in source control. A populated external Cargo registry/git cache can supply
 dependencies, including offline builds with `CARGO_NET_OFFLINE=true`. Each
-producer invocation builds into a fresh directory. The adapter uses nextest's
+producer invocation builds into a fresh directory by default. The adapter uses nextest's
 native JUnit and JSON discovery on stable Rust. It does not use unstable
 libtest JSON or set RUSTC_BOOTSTRAP. Cargo features are selectable with
 `--features`; repeat `--package` to restrict workspace packages.
@@ -63,6 +63,40 @@ The adapter runs workspace libtest tests using its own nextest profile with
 zero retries. Rustdoc tests, custom harnesses with other output conventions,
 and repository nextest profiles are outside the qualified interface. Run
 additional project commands in the scope's wrapper and propagate their failures.
+
+### Reuse one captured build
+
+1. Install the same IntentBond pin for the checker and the Python environment
+   that invokes the producers. Add `"cargo_build": {}` to `tests` in the trusted
+   scope. An empty object selects the locked workspace with its default features.
+   For a narrower build, use e.g. `{"packages": ["server"], "features": "postgres"}`.
+   Put compile-time settings in the environment of `ib check`.
+2. Once that scope is accepted as the baseline, add `--use-captured-build` to
+   each participating Cargo invocation above. Move any package/feature options
+   to the scope. Keep the separate reports, bindings, exact selectors and
+   service observations, including per-invocation environment variables.
+   Other producers can keep their existing command lines.
+
+IntentBond prepares one [nextest archive](https://nexte.st/docs/ci-features/archiving/)
+in a new private directory outside the exported candidate, before running the
+fixture driver. The target and intermediate build directories start empty. Each
+producer checks the captured root, source manifest, tool versions and Cargo/Rust
+environment, then verifies a private copy against the preparation digest. Both
+discovery and execution use that copy. Each invocation gets a separate nextest
+store, native JUnit destination and linked report. Fixture variables supplied to
+the driver affect execution only. To compile with different settings, use a
+fresh-target invocation or a separate check. The linked suite records the
+archive digest, captured source digest and scope build options. Check and verify
+match these fields to the preparation record. Archive reuse requires test
+binaries that can run from an extracted nextest target directory.
+
+The archive lives for one test command. A new check builds again, even at the
+same commit. IntentBond accepts no target directory or archive supplied by the
+caller. Keep external Cargo configuration, tool installations and build inputs
+stable for the check. Use an isolated worker with trusted tools, dependencies, build scripts,
+test driver and filesystem for the duration of the check. Commands run as the
+worker account and can alter its files or fabricate reports. The digest checks
+detect mismatched source and archive contents within this trust boundary.
 
 ## Verus
 
