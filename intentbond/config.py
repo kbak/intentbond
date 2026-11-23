@@ -142,8 +142,10 @@ def validate_scope(scope):
     if tests.get("format", "junit") == "junit":
         if "cargo_build" in tests:
             build = tests["cargo_build"]
-            if not isinstance(build, dict) or set(build) - {"packages", "features"}:
-                raise CheckError("tests.cargo_build accepts packages and features")
+            if not isinstance(build, dict) or set(build) - {"packages", "features", "doctests"}:
+                raise CheckError("tests.cargo_build accepts packages, features and doctests")
+            if "doctests" in build and type(build["doctests"]) is not bool:
+                raise CheckError("cargo_build.doctests must be a boolean")
             packages = build.get("packages", [])
             if (
                 not isinstance(packages, list)

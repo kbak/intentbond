@@ -207,6 +207,11 @@ provides the qualified runners, source-local bindings and a copyable scope.
 For several fixture runs in the same capture, the trusted scope can set
 `tests.cargo_build` to `{}` and each Cargo invocation can select
 `--use-captured-build`. Each fixture still needs its own fresh report.
+Optional `tests.cargo_build.doctests: true` runs fresh Cargo doctests using the
+same private compilation directory before fixture execution. Its retained
+command outcome and log are separate from per-case JUnit/OFT observations;
+zero/ignored doctests follow Cargo's ordinary command semantics. Update evidence
+readers before adopting the new scope option.
 Use the package-qualified nextest binary ID and full test name for Cargo, and
 the whole-crate Verus function identity for proofs. Specify Verus JUnit paths
 in `tests.verus_reports` for retained native evidence. The existing

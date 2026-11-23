@@ -115,6 +115,10 @@ def render_check(result, out):
         timings.append(f"trace commands={sum(trace_durations):.3f}s")
     if "duration_seconds" in tests:
         timings.append(f"tests={tests['duration_seconds']:.3f}s")
+    build = tests.get("cargo_build", {})
+    for label, phase in (("cargo build", build), ("doctests", build.get("doctests", {}))):
+        if "duration_seconds" in phase:
+            timings.append(f"{label}={phase['duration_seconds']:.3f}s (within tests)")
     if timings:
         lines.append("timings: " + "; ".join(timings))
     if "counts" in tests:

@@ -19,15 +19,21 @@ EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "rust-execution"
 
 
 # [utest->req~ib-cargo-build-reuse~1]
+# [utest->req~ib-cargo-doctests~1]
 def qualify_reuse(repo, base, out):
     policy = read_json(repo / ".intentbond/scope.json")
     tests = policy["tests"]
-    tests["cargo_build"] = {}
+    tests["cargo_build"] = {"doctests": True}
     tests["reports"].append("second-service.xml")
     scope = out / "reuse-scope.json"
     scope.write_text(json.dumps(policy))
     driver = repo / "run.py"
     original = driver.read_text()
+    source = repo / "src/lib.rs"
+    original_source = source.read_text()
+    source.write_text(
+        "//! ```rust\n//! assert_eq!(1_i32.checked_add(1), Some(2));\n//! ```\n" + original_source
+    )
     counter = out / "compilations"
     (repo / "build.rs").write_text(
         "fn main() { use std::io::Write; let mut f = std::fs::OpenOptions::new()"
@@ -49,6 +55,30 @@ def qualify_reuse(repo, base, out):
                 repo, scope, base, "worktree", passing / "evidence.json", allow_pending_review=True
             )
             assert counter.read_text().splitlines() == ["compiled"]
+            assert result["tests"]["cargo_build"]["doctests"]["status"] == "passed"
+            log = passing / "cargo-doctests.log"
+            raw = log.read_bytes()
+            assert b"1 passed" in raw
+            for altered in (False, True):
+                if altered:
+                    log.write_bytes(raw + b"changed")
+                else:
+                    log.unlink()
+                try:
+                    verify(
+                        repo,
+                        scope,
+                        base,
+                        "worktree",
+                        passing / "evidence.json",
+                        allow_pending_review=True,
+                    )
+                except (CheckError, FileNotFoundError):
+                    pass
+                else:
+                    raise AssertionError("Verifier accepted missing or altered doctest output")
+                finally:
+                    log.write_bytes(raw)
             # Change only the runtime fixture for the repeated execution.
             driver.write_text(
                 driver.read_text().replace(
@@ -74,11 +104,26 @@ def qualify_reuse(repo, base, out):
         assert first.get("name") == second.get("name") == "tests::round_trip"
         assert first.find("failure") is None and second.find("failure") is not None
         print(
-            "captured build: one compilation, separate passing and failing fixture observations",
+            "captured build: one compilation including fresh doctests; separate fixture observations",
             flush=True,
         )
+        source.write_text(
+            source.read_text().replace(
+                "//! assert_eq!(1_i32.checked_add(1), Some(2));",
+                "//! assert_eq!(1_i32.checked_add(1), Some(3));",
+            )
+        )
+        with patch.dict(os.environ, {"BUILD_COUNTER": str(counter)}):
+            failed = out / "captured-doctest-failure"
+            result = check(repo, scope, base, "worktree", failed, default_jar())
+        assert result["status"] == "rejected", result
+        assert result["tests"]["cargo_build"]["doctests"]["status"] == "failed"
+        assert counter.read_text().splitlines() == ["compiled"] * 3
+        assert not (failed / "tests-1.xml").exists()
+        print("captured doctests: failure rejects the check before fixture execution", flush=True)
     finally:
         driver.write_text(original)
+        source.write_text(original_source)
         (repo / "build.rs").unlink()
 
 

@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 
 from junitparser import Attr, JUnitXml, TestCase
 
-from .cargo_build import BUILD_ENV, run_with_build, validate_build_evidence
+from .cargo_build import BUILD_ENV, build_passed, run_with_build, validate_build_evidence
 from .common import CheckError, run, xml_tree
 from .verus_junit import validate_retained
 
@@ -142,7 +142,7 @@ def execute_tests(snap, scope, out):
     result["format"] = config.get("format", "junit")
     result["level"] = "suite" if reports else "command"
     # [impl->req~ib-command-results~1]
-    if not reports or ("cargo_build" in result and result["cargo_build"]["status"] != "passed"):
+    if not reports or ("cargo_build" in result and not build_passed(result["cargo_build"])):
         return result
     target = out / "tests.xml"
     try:

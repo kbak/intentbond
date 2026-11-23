@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import __version__, boundaries
-from .cargo_build import validate_build_evidence
+from .cargo_build import build_artifacts, validate_build_evidence
 from .common import CheckError, canonical, digest, read_json, within, write_json, xml_tree
 from .config import load_baseline_scope, load_scope
 from .evidence import check_artifacts, read_statement, statement, test_statement
@@ -250,7 +250,7 @@ def verify(
     if scope["tests"].get("format", "junit") == "junit":
         required.add("tests.xml")
     if "cargo_build" in scope["tests"]:
-        required.add("cargo-build.log")
+        required.update(build_artifacts(scope["tests"]["cargo_build"]))
     reports = [
         {"source": name, "artifact": f"tests-{index}.xml"}
         for index, name in enumerate(scope["tests"].get("reports", []), 1)

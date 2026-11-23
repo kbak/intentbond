@@ -526,6 +526,21 @@ accepts its own bindings, selection, fixture environment and fresh report path.
 The fresh-target producer remains the default. See the
 [migration and build trust boundary](../examples/rust-execution/README.md#reuse-one-captured-build).
 
+Set `"cargo_build": {"doctests": true}` to also execute
+`cargo test --doc --locked` with the same package/feature selection and private
+target directory before discarding compilation outputs. This reuses compilation,
+not test results. The option defaults to false and must be a boolean. Doctests
+share the overall test timeout; a nonpassing command stops preparation and
+prevents passing evidence. Source stability checks cover both commands.
+
+The build record's optional `doctests` field retains the command, status, exit
+code, duration and `cargo-doctests.log` path. Verification requires the matching
+successful record and hashed log when the scope opts in. Cargo's command outcome
+does not provide per-case execution links or enforce nonzero doctest discovery.
+The CLI shows archive preparation and doctest durations as portions of the
+overall test time. Update evidence consumers to this checker version before
+adopting the new scope option.
+
 ### Bundle contents
 
 | Files | Contents |
