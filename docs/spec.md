@@ -22,6 +22,9 @@ this repository leaves them to review while OFT checks exact reference revisions
 The command runs the existing Python suite with the committed opt-in pytest 9.1.1
 adapter and a fresh JUnit report. The scope governs ordinary `ib check` runs;
 CI automation is configured separately in [.github/workflows/ci.yml](../.github/workflows/ci.yml).
+CI and secret scanning run on pull requests, pushes to `main`, and manual dispatch;
+new PR updates cancel older runs of the same workflow for that PR. See
+[validation](validation.md) for the Python matrix and separate example jobs.
 
 The separate [secret scan](../.github/workflows/secrets.yml) scans fetched Git
 history with upstream rules and a synthetic detection self-check. Package builds

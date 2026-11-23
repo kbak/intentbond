@@ -20,11 +20,13 @@ ruff format --check .
 ```
 
 See [validation](docs/validation.md) for dependencies, packaged tests, examples,
-and optional mutation checks. CI builds a source distribution and wheel, then
-tests the installed package outside the source checkout.
+and optional mutation checks. CI runs on pull requests and pushes to `main`, or
+by manual dispatch. New PR updates cancel older runs of the same workflow for
+that PR. CI builds a source distribution and wheel, then tests the installed
+package outside the source checkout.
 
 The [secret scan](.github/workflows/secrets.yml) runs checksum-pinned Gitleaks over
-all fetched history on pushes and pull requests. A synthetic token first checks
+all fetched history on the same triggers. A synthetic token first checks
 that detection works. CI uses upstream rules without candidate config, ignore
 files or inline suppressions. To check locally with Gitleaks 8.30.1:
 

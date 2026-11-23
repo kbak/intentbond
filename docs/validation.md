@@ -29,8 +29,16 @@ malformed evidence and mutation counterexamples.
 The [CI workflow](../.github/workflows/ci.yml) builds the source distribution and
 then its wheel without build isolation, installs the wheel without dependency
 resolution, and runs packaged tests/fixtures from a
-separate working directory. It checks Python 3.11 and 3.12, packaged skill
-references, lint, and the three language examples. Example smoke checks require
+separate working directory. It runs on pull requests, pushes to `main`, and manual
+dispatch. Feature-branch pushes are checked through their PR, avoiding duplicate
+push and PR runs. A new PR update cancels older runs of the same workflow for
+that PR; `main` and manual runs remain independent. The
+[secret scan](../.github/workflows/secrets.yml) uses the same triggers and cancellation
+policy.
+
+The full installed-package suite and packaged skill checks run on both Python
+3.11 and 3.12. Lint runs once, on Python 3.12. The three language examples and
+Rust qualification have separate jobs. Example smoke checks require
 passing behavior, rejection of boundary and equality-only defects, and passing
 restoration. The equality-only defect satisfies the boundary and translation
 properties but violates the full expiration postcondition. Native logs and
@@ -58,7 +66,10 @@ on manual dispatch, separately from the normal pull-request checks.
 
 The [async lifecycle example](../examples/async-lifecycle) has a standalone offline
 qualification command. CI executes it from the extracted source distribution with
-the installed wheel and already-provisioned JAR. It verifies 754 retained case
+the installed wheel and already-provisioned JAR. The `offline-examples` job runs
+this demo and the CLI ordering demo once on Python 3.12, in parallel with the
+Python test matrix. Their output directories are retained together in the
+`offline-examples` artifact. The async demo verifies 754 retained case
 records, both exact counter-reset regressions, legitimate alternatives, 12 repair
 API controls, ordinary-plus-retention parity and pending semantic review. It needs
 no model service, historical research directory or additional runtime dependency.
