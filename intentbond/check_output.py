@@ -61,27 +61,34 @@ def _excerpt(value, limit):
     return text if len(text) <= limit else text[:limit] + "… [excerpt]"
 
 
-def _failure_lines(out):
-    try:
-        failures = [
-            case
-            for case in report_cases(xml_tree(out / "tests.xml"))
-            if case.is_failure or case.is_error
-        ]
-        if failures:
-            lines = ["Reported failures (excerpt; full details in test report):"]
-            for case in failures[:3]:
-                name = "::".join(part for part in (case.classname, case.name) if part)
-                detail = "\n".join(
-                    "\n".join(part for part in (result.message, result.text) if part)
-                    for result in case.result
-                )
-                lines.append(f"  {_excerpt(name, 180)}: {_excerpt(detail, 650)}")
-            if len(failures) > 3:
-                lines.append(f"  {len(failures) - 3} more failing cases in test report")
-            return lines
-    except (CheckError, JUnitXmlError, ValueError, TypeError):
-        pass  # Missing or malformed reports cannot replace the recorded check outcome.
+def _failure_lines(out, reports=()):
+    failures = []
+    # [impl->req~ib-report-merge~1]
+    # Incomplete collections have individual originals but no combined report.
+    for report in [out / "tests.xml", *(out / item["artifact"] for item in reports)]:
+        try:
+            failures.extend(
+                (case, report)
+                for case in report_cases(xml_tree(report))
+                if case.is_failure or case.is_error
+            )
+            if report.name == "tests.xml":
+                break  # Do not repeat failures already present in the combined report.
+        except (CheckError, JUnitXmlError, ValueError, TypeError):
+            continue  # A malformed original must not hide failures in another report.
+    if failures:
+        lines = ["Reported failures (excerpt; full details in test report):"]
+        for case, report in failures[:3]:
+            name = "::".join(part for part in (case.classname, case.name) if part)
+            details = [part for result in case.result for part in (result.message, result.text)]
+            details.extend([case.system_out, case.system_err])
+            detail = "\n".join(part for part in details if part)
+            lines.append(f"  {_excerpt(name, 180)}: {_excerpt(detail, 650)}")
+            if report.name != "tests.xml":
+                lines.append(f"  {report.name}: {report}")
+        if len(failures) > 3:
+            lines.append(f"  {len(failures) - 3} more failing cases in test report")
+        return lines
     try:
         with (out / "tests.log").open("rb") as log:
             log.seek(0, 2)
@@ -125,6 +132,12 @@ def render_check(result, out):
         lines.append("counts: " + ", ".join(f"{k}={v}" for k, v in tests["counts"].items()))
     if "error" in tests:
         lines.append("test error: " + _excerpt(tests["error"], 600))
+    report_errors = [
+        error for error in tests.get("report_errors", []) if error != tests.get("error")
+    ]
+    lines.extend("test report error: " + _excerpt(error, 600) for error in report_errors[:3])
+    if len(report_errors) > 3:
+        lines.append(f"{len(report_errors) - 3} more test report errors in evidence.json")
     review = result.get("review", {})
     lines.append(
         f"semantic review: {review.get('status', 'not_recorded')}"
@@ -148,7 +161,7 @@ def render_check(result, out):
         if name in result.get("artifacts", {}):
             lines.append(f"{name}: {out / name}")
     if tests["status"] in {"failed", "error"}:
-        lines.extend(_failure_lines(out))
+        lines.extend(_failure_lines(out, tests.get("reports", [])))
     if result["status"] == "review_required":
         lines.append("Automated checks passed; external semantic review is required.")
     lines.append(

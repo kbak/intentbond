@@ -69,6 +69,20 @@ class CheckOutputTests(unittest.TestCase):
                 self.assertIn("Test log excerpt", text)
                 self.assertLess(len(text), 2500)
 
+    # [utest->req~ib-report-merge~1]
+    def test_report_errors_are_bounded_and_preserve_command_error(self):
+        self.result["tests"].update(
+            error="Command timed out",
+            report_errors=[f"missing{i} " + "x" * 2000 for i in range(8)],
+        )
+        text = render_check(self.result, self.out)
+        self.assertIn("test error: Command timed out", text)
+        self.assertIn("test report error: missing2", text)
+        self.assertNotIn("missing3", text)
+        self.assertIn("5 more test report errors in evidence.json", text)
+        self.assertLess(len(text), 3000)
+        self.assertEqual(len(self.result["tests"]["report_errors"]), 8)
+
     def test_command_success_has_no_invented_counts_or_report(self):
         self.result.update(status="passed", diagnostics=[])
         self.result["tests"] = {"status": "passed", "level": "command", "source_status": "matched"}

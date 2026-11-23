@@ -11,11 +11,47 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest.mock import patch
 
+from intentbond.check_output import render_check
 from intentbond.common import CheckError, read_json
 from intentbond.oft import default_jar
 from intentbond.runner import check, verify
 
 EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "rust-execution"
+
+
+# [utest->req~ib-cargo-evidence~1]
+# [utest->req~ib-report-merge~1]
+def qualify_early_failure(repo, base, out):
+    source = repo / "src/lib.rs"
+    driver = repo / "run.py"
+    original_source, original_driver = source.read_text(), driver.read_text()
+    try:
+        source.write_text(original_source.replace("Some(2)", 'Some(3), "retained cargo failure"'))
+        driver.write_text(
+            original_driver.replace(
+                "results = [subprocess.run(command).returncode for command in commands]",
+                "results = []\nfor command in commands:\n"
+                "    code = subprocess.run(command).returncode\n"
+                "    if code: sys.exit(code)\n    results.append(code)",
+            )
+        )
+        evidence = out / "early-cargo-failure"
+        result = check(repo, None, base, "worktree", evidence, default_jar())
+        assert result["status"] == "rejected", result
+        assert result["tests"]["exit_code"] != 0
+        assert result["tests"]["reports"] == [{"source": "ordinary.xml", "artifact": "tests-1.xml"}]
+        assert "retained cargo failure" in (evidence / "tests.log").read_text()
+        assert "retained cargo failure" in (evidence / "tests-1.xml").read_text()
+        assert not (evidence / "tests.xml").exists()
+        assert not (evidence / "verus-3.json").exists()
+        text = render_check(result, evidence)
+        assert "retained cargo failure" in text, text
+        assert "proofs.xml.verus.json" in text, text
+        assert "counts" not in result["tests"]
+        print("early Cargo failure: output retained; missing downstream reports reject", flush=True)
+    finally:
+        source.write_text(original_source)
+        driver.write_text(original_driver)
 
 
 # [utest->req~ib-cargo-build-reuse~1]
@@ -191,6 +227,7 @@ def qualify(out):
                 text=True,
             )
             assert json.loads(explanation)["linked_test_execution"] == "passed"
+            qualify_early_failure(repo, base, out)
             qualify_reuse(repo, base, out)
 
             native = out / "passing" / "verus-3.json"
