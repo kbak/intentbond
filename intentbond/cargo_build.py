@@ -52,6 +52,26 @@ def archive_digest(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+def build_artifacts(build):
+    return {"cargo-build.log"} | ({"cargo-doctests.log"} if build.get("doctests") else set())
+
+
+def doctest_command(target, build):
+    return [
+        "cargo",
+        "test",
+        "--doc",
+        *build_args(target, build.get("packages", []), build.get("features")),
+    ]
+
+
+def build_passed(preparation):
+    return (
+        preparation["status"] == "passed"
+        and preparation.get("doctests", {}).get("status", "passed") == "passed"
+    )
+
+
 def cargo_environment(env):
     # Retain only a digest. Compilation sees the check environment, before fixture setup.
     settings = {
@@ -76,6 +96,7 @@ def cargo_environment(env):
 
 
 # [impl->req~ib-cargo-build-reuse~1]
+# [impl->req~ib-cargo-doctests~1]
 def run_with_build(snap, config, out, env):
     started = time.monotonic()
     deadline = started + config["timeout_seconds"]
@@ -113,8 +134,22 @@ def run_with_build(snap, config, out, env):
             max(0, deadline - time.monotonic()),
             {**env, "CARGO_BUILD_BUILD_DIR": str(target)},
         )
-        if preparation["status"] != "passed":
-            shutil.copyfile(out / "cargo-build.log", out / "tests.log")
+        if preparation["status"] == "passed":
+            if archive.is_symlink() or not archive.is_file() or changed_source(snap):
+                raise CheckError(
+                    "Cargo preparation requires a fresh archive and unchanged captured source"
+                )
+            if build.get("doctests"):
+                preparation["doctests"] = run(
+                    doctest_command(target, build),
+                    snap.root,
+                    out / "cargo-doctests.log",
+                    max(0, deadline - time.monotonic()),
+                    {**env, "CARGO_BUILD_BUILD_DIR": str(target)},
+                )
+        if not build_passed(preparation):
+            failed = preparation.get("doctests", preparation)
+            shutil.copyfile(out / failed["log"], out / "tests.log")
             return {
                 "command": config["command"],
                 "status": "error",
@@ -122,7 +157,7 @@ def run_with_build(snap, config, out, env):
                 "log": "tests.log",
                 "duration_seconds": round(time.monotonic() - started, 3),
                 "cargo_build": preparation,
-                "error": "Cargo build preparation failed; see cargo-build.log",
+                "error": f"Cargo preparation did not pass; see {failed['log']}",
             }
         if archive.is_symlink() or not archive.is_file() or changed_source(snap):
             raise CheckError(
@@ -185,6 +220,7 @@ def captured_archive(scratch, toolchain):
     return archive, binding
 
 
+# [impl->req~ib-cargo-doctests~1]
 def validate_build_evidence(preparation, build, candidate_sha256, report):
     if (
         not isinstance(preparation, dict)
@@ -195,6 +231,24 @@ def validate_build_evidence(preparation, build, candidate_sha256, report):
         or not re.fullmatch("[0-9a-f]{64}", str(preparation.get("archive_sha256")))
     ):
         raise CheckError("Cargo preparation differs from the captured source or configured build")
+    if build.get("doctests"):
+        try:
+            command = preparation["command"]
+            if not isinstance(command, list) or not isinstance(preparation["doctests"], dict):
+                raise CheckError("Malformed Cargo doctest command or outcome")
+            target = command[command.index("--target-dir") + 1]
+            doctests = preparation["doctests"]
+            if (
+                doctests["status"] != "passed"
+                or doctests["exit_code"] != 0
+                or doctests["command"] != doctest_command(target, build)
+                or doctests["log"] != "cargo-doctests.log"
+            ):
+                raise CheckError("Cargo doctest evidence does not match the configured build")
+        except (KeyError, TypeError, ValueError, IndexError) as exc:
+            raise CheckError("Missing or malformed Cargo doctest evidence") from exc
+    elif "doctests" in preparation:
+        raise CheckError("Cargo doctest evidence was not requested by the scope")
     expected = {
         "build_archive_sha256": preparation["archive_sha256"],
         "build_candidate_sha256": candidate_sha256,

@@ -230,11 +230,155 @@ class RustProducers(unittest.TestCase):
             {"packages": "demo"},
             {"packages": ["demo", "demo"]},
             {"features": ["db"]},
+            {"doctests": "true"},
+            {"doctests": 1},
+            {"doctests": None},
         ):
             with self.subTest(build=build), self.assertRaises(CheckError):
                 validate_scope({**policy, "tests": {**policy["tests"], "cargo_build": build}})
         with self.assertRaises(CheckError):
             validate_scope({**policy, "tests": {**tests, "cargo_build": {}}})
+
+    # [utest->req~ib-cargo-doctests~1]
+    def test_doctests_reuse_compilation_and_failure_prevents_fixture_execution(self):
+        for status, exit_code in (("passed", 0), ("failed", 101), ("error", None)):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory) / "candidate"
+                root.mkdir()
+                snap = Snapshot(
+                    root, "commit", "commit", [put_file(root, "lib.rs", "100644", b"v1")]
+                )
+                config = {
+                    "cargo_build": {"packages": ["demo"], "features": "db", "doctests": True},
+                    "command": ["driver"],
+                    "timeout_seconds": 30,
+                }
+                calls = []
+                targets = []
+
+                def run(command, cwd, log, timeout, env):
+                    calls.append(command)
+                    log.write_text("doctest diagnostic\n")
+                    outcome = {
+                        "command": command,
+                        "status": "passed",
+                        "exit_code": 0,
+                        "log": log.name,
+                        "duration_seconds": 0.01,
+                    }
+                    self.assertGreater(timeout, 0)
+                    self.assertLessEqual(timeout, config["timeout_seconds"])
+                    if command == ["driver"]:
+                        self.assertFalse(targets[0].exists())
+                        self.assertTrue(json.loads(env[cargo_build.BUILD_ENV])["build"]["doctests"])
+                    else:
+                        target = Path(command[command.index("--target-dir") + 1])
+                        self.assertEqual(env["CARGO_BUILD_BUILD_DIR"], str(target))
+                        if command[1] == "nextest":
+                            target.mkdir()
+                            (target / "dependency").write_bytes(b"compiled once")
+                            Path(command[command.index("--archive-file") + 1]).write_bytes(
+                                b"archive"
+                            )
+                            targets.append(target)
+                        else:
+                            self.assertEqual(command[:4], ["cargo", "test", "--doc", "--locked"])
+                            self.assertEqual(target, targets[0])
+                            self.assertEqual((target / "dependency").read_bytes(), b"compiled once")
+                            self.assertEqual(
+                                command[-4:], ["--package", "demo", "--features", "db"]
+                            )
+                            outcome.update(status=status, exit_code=exit_code)
+                    return outcome
+
+                with (
+                    patch.object(cargo_build, "run", side_effect=run),
+                    patch.object(cargo_build, "versions", return_value={}),
+                ):
+                    result = cargo_build.run_with_build(
+                        snap, config, Path(directory), dict(os.environ)
+                    )
+                self.assertEqual(["driver"] in calls, status == "passed")
+                self.assertEqual(result["status"] == "passed", status == "passed")
+                self.assertEqual(result["cargo_build"]["doctests"]["status"], status)
+                self.assertFalse(targets[0].parent.exists())
+                if status != "passed":
+                    self.assertEqual(
+                        (Path(directory) / "tests.log").read_text(), "doctest diagnostic\n"
+                    )
+
+    def test_doctest_source_mutation_is_rejected_before_fixture_execution(self):
+        root = Path.cwd() / "candidate"
+        root.mkdir()
+        snap = Snapshot(root, "commit", "commit", [put_file(root, "lib.rs", "100644", b"v1")])
+        config = {"cargo_build": {"doctests": True}, "command": ["driver"], "timeout_seconds": 30}
+
+        def run(command, cwd, log, timeout, env):
+            self.assertNotEqual(command, ["driver"])
+            if command[1] == "nextest":
+                Path(command[command.index("--archive-file") + 1]).write_bytes(b"archive")
+            else:
+                (root / "lib.rs").write_bytes(b"v2")
+            return {"status": "passed", "exit_code": 0}
+
+        with (
+            patch.object(cargo_build, "run", side_effect=run),
+            patch.object(cargo_build, "versions", return_value={}),
+        ):
+            with self.assertRaisesRegex(CheckError, "unchanged captured source"):
+                cargo_build.run_with_build(snap, config, root.parent, dict(os.environ))
+
+    def test_doctest_evidence_requires_success_and_the_same_build_configuration(self):
+        build = {"doctests": True}
+        command = [
+            "cargo",
+            "test",
+            "--doc",
+            "--locked",
+            "--target-dir",
+            "/private/target",
+            "--workspace",
+        ]
+        preparation = {
+            "status": "passed",
+            "exit_code": 0,
+            "configuration": build,
+            "candidate_sha256": "c" * 64,
+            "archive_sha256": "a" * 64,
+            "command": ["cargo", "nextest", "archive", "--target-dir", "/private/target"],
+            "doctests": {
+                "status": "passed",
+                "exit_code": 0,
+                "command": command,
+                "log": "cargo-doctests.log",
+            },
+        }
+        path = Path("tests.xml")
+        path.write_text('<testsuite name="cargo-nextest"/>')
+        cargo_build.validate_build_evidence(preparation, build, "c" * 64, path)
+        for update in (
+            {"status": "failed"},
+            {"exit_code": None},
+            {"command": command + ["--ignored"]},
+            {"log": "different.log"},
+            {"command": command[:-1] + ["--package", "other"]},
+        ):
+            with self.subTest(update=update), self.assertRaises(CheckError):
+                cargo_build.validate_build_evidence(
+                    {**preparation, "doctests": preparation["doctests"] | update},
+                    build,
+                    "c" * 64,
+                    path,
+                )
+        for missing in (None, {}, []):
+            with self.subTest(missing=missing), self.assertRaises(CheckError):
+                cargo_build.validate_build_evidence(
+                    {**preparation, "doctests": missing}, build, "c" * 64, path
+                )
+        with self.assertRaises(CheckError):
+            cargo_build.validate_build_evidence(
+                {**preparation, "configuration": {}}, {}, "c" * 64, path
+            )
 
     def test_report_from_another_preparation_is_rejected(self):
         preparation = {

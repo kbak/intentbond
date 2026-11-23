@@ -1441,6 +1441,28 @@ Covers:
 
 Needs: impl, utest
 
+### Reuse captured compilation for fresh doctests
+`req~ib-cargo-doctests~1`
+
+The trusted Cargo build scope may opt into doctests. Run them afresh against the
+captured candidate with the same package selection, features, build environment
+and private compilation directory as archive preparation, within the existing
+execution timeout. Retain the command outcome, log and duration. A failed,
+interrupted or timed-out doctest command cannot produce passing evidence.
+Verification requires the requested doctest outcome and retained log; missing,
+altered or differently configured evidence cannot pass. The private compilation
+directory is discarded before fixture producers execute. Existing scopes without
+the option retain their execution behavior.
+
+This is Cargo command evidence: zero discovered doctests and ignored doctests
+retain Cargo's ordinary success semantics and remain visible in the log. It does
+not add per-doctest OFT links or claim that every documentation example ran.
+
+Covers:
+- `intent~ib-trust-evidence~1`
+
+Needs: impl, utest
+
 ### Retain Verus function verification evidence
 `req~ib-verus-evidence~1`
 

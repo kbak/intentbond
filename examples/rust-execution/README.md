@@ -98,6 +98,19 @@ test driver and filesystem for the duration of the check. Commands run as the
 worker account and can alter its files or fabricate reports. The digest checks
 detect mismatched source and archive contents within this trust boundary.
 
+To retain doctest coverage without compiling dependencies again, enable
+`"cargo_build": {"doctests": true}`. The checker runs doctests in the private
+compilation directory before discarding it, using the same packages and features.
+The outcome, timing and hashed `cargo-doctests.log` are retained separately from
+JUnit observations. A failure stops preparation. Zero or ignored doctests retain
+Cargo's usual command semantics, visible in that log.
+
+During scope migration, keep a standalone doctest command for a baseline that
+does not enable the option. Remove that command only when the active trusted
+capture binding's build configuration has `doctests: true`; the checker has
+already required those doctests to pass before invoking the driver. Old readers
+must be upgraded before consuming scopes with the new field.
+
 ## Verus
 
 Put the exact function identity printed by the pinned verifier on the proof
