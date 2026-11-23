@@ -389,6 +389,18 @@ case names across runners. Existing testcase properties, including optional OFT
 execution links, are retained. This adds no task runner dependency. A suite run
 separately outside this command is not included in the check evidence.
 
+When execution stops early or a report is invalid, collection still retains each
+available safe original, including malformed bytes for diagnosis. Available
+native Verus reports are retained independently too. The test result's
+`report_errors` list records collection and validation problems separately from
+the command's exit code and any timeout diagnostic. For multiple reports,
+`reports` lists the retained originals with their original configured indices;
+`tests.xml` and complete suite counts are produced only after all configured
+reports have been retained and validated. Partial collections remain nonpassing
+and provide no execution-link claims. The CLI shows bounded failure excerpts
+from available originals, including captured test output, and paths to the
+reports containing those failures.
+
 The JUnit adapter accepts unnamespaced XML and rejects DTDs and entity declarations
 regardless of encoding, malformed or inconsistent reports, and reports already
 present in the candidate. Entirely skipped or empty suites fail.
@@ -508,6 +520,9 @@ disabled, existing behavior and bundles remain valid.
 
 The [Rust execution example](../examples/rust-execution/README.md) includes
 source-local OFT bindings, the supported invocations and a multi-report scope.
+The Cargo producer prints nextest failure output at the end of the run for
+retention in `tests.log` and stores failed test output in JUnit. Successful test
+output remains suppressed.
 For Verus, set `tests.verus_reports` to a nonempty, unique subset of the
 configured JUnit report paths. Each selected path requires a fresh sibling
 named `<report>.verus.json`. The checker retains the original bytes as

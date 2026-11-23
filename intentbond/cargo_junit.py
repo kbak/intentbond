@@ -108,7 +108,7 @@ def run_nextest(args, suite, scratch):
     config.write_text(
         f"[store]\ndir = {json.dumps(str(scratch / 'store'))}\n"
         f"[profile.ib.junit]\npath = {json.dumps(str(native))}\n"
-        'report-skipped = "none"\nstore-failure-output = false\n'
+        'report-skipped = "none"\nstore-failure-output = true\n'
     )
     prefix = ["cargo", "nextest"]
     tools = versions(Path.cwd())
@@ -133,7 +133,7 @@ def run_nextest(args, suite, scratch):
     cases = inventory(subprocess.check_output(discover, env=env))
     selected, skipped = selection(cases, args.ignored, args.exclude)
     command = prefix + ["run", *common, "--no-fail-fast", "--retries", "0", "--no-tests", "fail"]
-    command.extend(["--failure-output", "never", "--success-output", "never"])
+    command.extend(["--failure-output", "final", "--success-output", "never"])
     if args.ignored:
         command.extend(["--run-ignored", "only", "-E", exact_filter(args.ignored)])
     elif args.exclude:

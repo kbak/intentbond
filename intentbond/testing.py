@@ -2,7 +2,7 @@ import os
 import shutil
 import xml.etree.ElementTree as ET
 
-from junitparser import Attr, JUnitXml, TestCase
+from junitparser import Attr, JUnitXml, JUnitXmlError, TestCase
 
 from .cargo_build import BUILD_ENV, build_passed, run_with_build, validate_build_evidence
 from .common import CheckError, run, xml_tree
@@ -110,6 +110,12 @@ def verus_report_pairs(config):
     }
 
 
+def retain_report(report, target, root):
+    if report.is_symlink() or not report.is_file() or not report.resolve().is_relative_to(root):
+        raise CheckError(f"Missing or unsafe report: {report.relative_to(root)}")
+    shutil.copyfile(report, target)
+
+
 def execute_tests(snap, scope, out):
     config = scope["tests"]
     names = (
@@ -144,38 +150,42 @@ def execute_tests(snap, scope, out):
     # [impl->req~ib-command-results~1]
     if not reports or ("cargo_build" in result and not build_passed(result["cargo_build"])):
         return result
+    if result["status"] == "failed":
+        result.setdefault("error", f"Test command failed (exit {result['exit_code']})")
     target = out / "tests.xml"
-    try:
-        retained = []
-        for name, (_, artifact) in native.items():
-            path = snap.root / (name + ".verus.json")
-            if (
-                path.is_symlink()
-                or not path.is_file()
-                or not path.resolve().is_relative_to(snap.root)
-            ):
-                raise CheckError(f"Missing or unsafe native Verus report for {name}")
-            shutil.copyfile(path, out / artifact)
-        # [impl->req~ib-fresh-reports~1]
-        for index, (name, report) in enumerate(zip(names, reports), 1):
-            if (
-                not report.is_file()
-                or report.is_symlink()
-                or not report.resolve().is_relative_to(snap.root)
-            ):
-                raise CheckError(
-                    f"Test command did not produce a fresh regular JUnit report: {name}"
-                )
-            copy = out / f"tests-{index}.xml" if "reports" in config else target
-            shutil.copyfile(report, copy)
+    retained = []
+    report_errors = []
+    # [impl->req~ib-report-merge~1]
+    # Collect independently: a downstream omission must not discard earlier failures.
+    for name, (_, artifact) in native.items():
+        try:
+            retain_report(snap.root / (name + ".verus.json"), out / artifact, snap.root)
+        except (CheckError, OSError) as exc:
+            report_errors.append(str(exc))
+    # [impl->req~ib-fresh-reports~1]
+    for index, (name, report) in enumerate(zip(names, reports), 1):
+        copy = out / f"tests-{index}.xml" if "reports" in config else target
+        try:
+            retain_report(report, copy, snap.root)
             retained.append({"source": name, "artifact": copy.name})
-            counts = junit_counts(copy)  # Validate originals before combining.
-            if name in native and not (
-                counts["errors"] or counts["failed"] or counts.get("suite_failed")
+            counts = junit_counts(copy)  # Retain even malformed originals for diagnosis.
+            if (
+                name in native
+                and (out / native[name][1]).is_file()
+                and not (counts["errors"] or counts["failed"] or counts.get("suite_failed"))
             ):
                 validate_retained(copy, (out / native[name][1]).read_bytes())
+        except (CheckError, OSError, JUnitXmlError, ValueError, TypeError) as exc:
+            report_errors.append(f"{name}: {exc}")
+    if "reports" in config:
+        result["reports"] = retained
+    if report_errors:
+        result["status"] = "error"
+        result.setdefault("error", report_errors[0])
+        result["report_errors"] = report_errors
+        return result
+    try:
         if "reports" in config:
-            result["reports"] = retained
             merged = merge_reports((r["source"], out / r["artifact"]) for r in retained)
             ET.ElementTree(merged).write(target, encoding="utf-8", xml_declaration=True)
         result["report"] = target.name
@@ -186,9 +196,13 @@ def execute_tests(snap, scope, out):
         counts = junit_counts(target)
         result["counts"] = counts
         if not counts_pass(counts, scope):
-            result["status"] = "failed"
-            result["error"] = "Report does not satisfy the configured test completion policy"
-    except CheckError as exc:
+            if result["status"] == "passed":
+                result["status"] = "failed"
+            result.setdefault(
+                "error", "Report does not satisfy the configured test completion policy"
+            )
+    except (CheckError, OSError, JUnitXmlError, ValueError, TypeError) as exc:
         result["status"] = "error"
-        result["error"] = str(exc)
+        result.setdefault("error", str(exc))
+        result["report_errors"] = [str(exc)]
     return result

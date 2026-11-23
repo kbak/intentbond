@@ -521,7 +521,16 @@ Existing assertions: [test_stale_report_is_rejected](../tests/test_workflow.py);
 ### Retain and combine all configured reports
 `req~ib-report-merge~1`
 
-For multiple configured JUnit outputs, retain each original and a combined report, preserving failures and completion information. Verification must reject a missing retained report or a combined report inconsistent with its retained originals.
+Retain each available fresh regular JUnit original inside the captured candidate,
+even when the command fails or another configured JUnit or native Verus report
+is missing, unsafe or invalid. Report collection continues after individual
+report errors and preserves the command's exit code and timeout diagnostic.
+Expose failures from available originals in CLI excerpts. Partial collections
+remain nonpassing and cannot establish complete suite counts or execution links.
+For multiple outputs, combine reports only after all configured reports have
+been retained and validated, preserving failures and completion information.
+Verification must reject a missing retained report or a combined report
+inconsistent with its retained originals.
 
 Covers:
 - `intent~ib-trust-evidence~1`
@@ -530,9 +539,9 @@ Needs: impl, utest
 
 Documentation: [docs/contract.md](contract.md).
 
-Implementation: [intentbond/testing.py](../intentbond/testing.py), [intentbond/runner.py](../intentbond/runner.py).
+Implementation: [intentbond/testing.py](../intentbond/testing.py), [intentbond/runner.py](../intentbond/runner.py), [intentbond/check_output.py](../intentbond/check_output.py).
 
-Existing assertions: [test_reports_are_retained_combined_and_verified](../tests/test_mixed_reports.py); [test_failure_or_incomplete_second_report_cannot_hide_behind_first](../tests/test_mixed_reports.py).
+Existing assertions: [test_reports_are_retained_combined_and_verified](../tests/test_mixed_reports.py); [test_failure_or_incomplete_second_report_cannot_hide_behind_first](../tests/test_mixed_reports.py); [test_failed_command_retains_junit_when_downstream_verus_never_runs](../tests/test_mixed_reports.py); [partial report regressions](../tests/test_partial_reports.py); [qualify_early_failure](../scripts/check_rust_example.py).
 
 ### Distinguish command success from counted test execution
 `req~ib-command-results~1`
@@ -1424,6 +1433,8 @@ ignored tests requires a unique discovered ignored case. Ordinary runs retain
 in-scope ignores. Duplicate identities, interrupted or incomplete runs, build
 errors and failed tests cannot produce passing suite evidence. Explicit source
 bindings supply revision-qualified OFT IDs to fresh JUnit reports.
+Failed test output is retained in both command output and JUnit, including
+failure details used by CLI excerpts.
 
 Covers:
 - `intent~ib-trust-evidence~1`

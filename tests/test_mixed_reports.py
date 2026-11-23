@@ -3,12 +3,47 @@ from unittest.mock import patch
 
 from test_workflow import WorkflowFixture
 
+from intentbond.check_output import render_check
 from intentbond.common import CheckError, digest, read_json, write_json
 from intentbond.config import validate_scope
 from intentbond.runner import verify
 
 
 class MixedReportTests(WorkflowFixture):
+    # [utest->req~ib-report-merge~1]
+    def test_failed_command_retains_junit_when_downstream_verus_never_runs(self):
+        self.replace("session.py", "30 * 60", "60 * 60")
+        self.configure_reports()
+        self.configure(
+            lambda s: s["tests"].update(
+                reports=["backend.xml", "proof.xml"],
+                verus_reports=["proof.xml"],
+                command=[
+                    sys.executable,
+                    "-c",
+                    "import subprocess,sys; from pathlib import Path; "
+                    "result=subprocess.run([sys.executable,'run_tests.py']); "
+                    "Path('test-results.xml').rename('backend.xml'); sys.exit(result.returncode)",
+                ],
+            )
+        )
+        result = self.run_check()
+        self.assertEqual(result["status"], "rejected")
+        self.assertEqual(result["tests"]["exit_code"], 1)
+        self.assertEqual(result["tests"]["source_status"], "matched")
+        self.assertIn("tests-1.xml", result["artifacts"])
+        self.assertNotIn("tests.xml", result["artifacts"])
+        self.assertEqual(
+            result["tests"]["reports"], [{"source": "backend.xml", "artifact": "tests-1.xml"}]
+        )
+        text = render_check(result, self.out)
+        self.assertIn("test_expiration_boundary", text)
+        self.assertIn("proof.xml.verus.json", text)
+        self.assertIn("exit 1", text)
+        self.assertEqual(read_json(self.out / "test-result.json")["predicate"]["result"], "FAILED")
+        with self.assertRaisesRegex(CheckError, "does not record a successful check"):
+            verify(self.repo, self.scope, self.base, "worktree", self.out / "evidence.json")
+
     def configure_reports(self, second='<testsuite tests="1"><testcase name="ui"/></testsuite>'):
         script = (
             "import subprocess,sys; from pathlib import Path; "
