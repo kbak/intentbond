@@ -134,6 +134,8 @@ and ask the developer the question that would settle it. If feedback arrives,
 attribute it in the review notes and distinguish a clarification of existing
 intent from a requested change. Only inventoried original files can supply
 checked citations. Leave unanswered decisions open and continue the draft.
+When an inferred condition would exclude a plausible case, state the supported
+promise and leave that case open if the available evidence does not settle it.
 
 Use the [property-testing workflow](../property-testing/SKILL.md), or its inline
 copy, for this discovery and handoff. During recovery, preserve executable tests,
