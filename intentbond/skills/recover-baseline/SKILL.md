@@ -89,6 +89,13 @@ leave edits uncommitted. A working-tree diff is still a proposal, not acceptance
 
 ## Write requirements and identify missing checks
 
+Before drafting, skim developer-supplied resources, public entry points and
+relevant tests within scope. Start a small feature table in the proposed Markdown,
+with one row per user or system outcome. Recover one row at a time. Follow its
+entry point through implementation and assertions, then draft its intent,
+requirements, exceptions and gaps before starting the next row. Update the table
+as boundaries emerge and link shared rules once across the affected rows.
+
 Follow OFT's reverse-specification evidence order: user-facing documentation,
 existing specifications/design, tests, public entry points, then internal code
 and configuration. Extract meaningful observable behavior and constraints.
@@ -105,9 +112,8 @@ and provenance records; they support recovery without replacing the authored
 contract. A separate verification document hierarchy or property catalog is not
 required.
 
-Keep a small feature table in the proposed Markdown: documented (IDs), deferred
-(reason/next step), or outside scope. Group by meaningful behavior, not every file
-or function; no new schema or exhaustive catalog is needed. In the omissions pass,
+Mark rows documented (IDs), deferred (reason/next step), or outside scope.
+In the omissions pass,
 look especially for boundary/negative cases, retry and lifecycle behavior, and
 contradictions with the first pass. Relevant regression assertions can reveal
 promises missing from the docs. Record remaining uncertainty instead of estimating
@@ -122,6 +128,12 @@ requirement IDs, documented/inferred origin, available checks, and the next acti
 Keep unresolved product meanings visible in the specification and record uncertain
 intent in open_issues. A candidate property is a proposal;
 current code or a passing test cannot establish that it is an accepted promise.
+
+When a conflict or missing rationale would change a promise, show the evidence
+and ask the developer the question that would settle it. If feedback arrives,
+attribute it in the review notes and distinguish a clarification of existing
+intent from a requested change. Only inventoried original files can supply
+checked citations. Leave unanswered decisions open and continue the draft.
 
 Use the [property-testing workflow](../property-testing/SKILL.md), or its inline
 copy, for this discovery and handoff. During recovery, preserve executable tests,
